@@ -114,6 +114,9 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
+        /// <summary>
+        /// 父节点
+        /// </summary>
 		public NodeDesigner ParentNodeDesigner
 		{
 			get
@@ -777,6 +780,13 @@ namespace BehaviorDesigner.Editor
 			this.addChildNode(childNodeDesigner, nodeConnection, replaceNode, -1);
 		}
 
+        /// <summary>
+        /// 添加一个子节点
+        /// </summary>
+        /// <param name="childNodeDesigner"></param>
+        /// <param name="nodeConnection"></param>
+        /// <param name="replaceNode"></param>
+        /// <param name="replaceNodeIndex"></param>
 		public void addChildNode(NodeDesigner childNodeDesigner, NodeConnection nodeConnection, bool replaceNode, int replaceNodeIndex)
 		{
 			if (replaceNode)
@@ -784,21 +794,30 @@ namespace BehaviorDesigner.Editor
 				ParentTask parentTask = this.mTask as ParentTask;
 				parentTask.Children[replaceNodeIndex] = childNodeDesigner.Task;
 			}
-			else if (!this.isEntryDisplay)
-			{
-				ParentTask parentTask2 = this.mTask as ParentTask;
-				int num = 0;
-				if (parentTask2.Children != null)
-				{
-					num = 0;
-					while (num < parentTask2.Children.Count && childNodeDesigner.Task.NodeData.Position.x >= parentTask2.Children[num].NodeData.Position.x)
-					{
-						num++;
-					}
-				}
-				parentTask2.AddChild(childNodeDesigner.Task, num);
+			else 
+			{//节点不是Entry开始节点
+                if (this.isEntryDisplay)
+                {
+                    Debug.Log(this.taskName + "--" + childNodeDesigner.taskName);
+                }
+                else
+                {
+                    ParentTask parentTask2 = this.mTask as ParentTask;
+                    int num = 0;
+                    if (parentTask2.Children != null)
+                    {
+                        num = 0;
+                        while (num < parentTask2.Children.Count && childNodeDesigner.Task.NodeData.Position.x >= parentTask2.Children[num].NodeData.Position.x)
+                        {
+                            num++;
+                        }
+                    }
+                    parentTask2.AddChild(childNodeDesigner.Task, num);
+                }
 			}
-			childNodeDesigner.ParentNodeDesigner = this;
+
+			childNodeDesigner.ParentNodeDesigner = this;//子节点的父节点是自己
+            //创建连线
 			nodeConnection.DestinationNodeDesigner = childNodeDesigner;
 			nodeConnection.NodeConnectionType = NodeConnectionType.Fixed;
 			if (!nodeConnection.OriginatingNodeDesigner.Equals(this))

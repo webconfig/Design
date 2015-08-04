@@ -380,7 +380,13 @@ namespace BehaviorDesigner.Editor
 				}
 			}
 		}
-
+        /// <summary>
+        /// 拖动节点
+        /// </summary>
+        /// <param name="delta"></param>
+        /// <param name="dragChildren"></param>
+        /// <param name="hasDragged"></param>
+        /// <returns></returns>
 		public bool dragSelectedNodes(Vector2 delta, bool dragChildren, bool hasDragged)
 		{
 			if (this.mSelectedNodes.Count == 0)
@@ -447,59 +453,65 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
+        /// <summary>
+        ///  绘制节点
+        /// </summary>
+        /// <param name="mousePosition"></param>
+        /// <param name="offset"></param>
+        /// <param name="graphZoom"></param>
+        /// <returns></returns>
 		public bool drawNodes(Vector2 mousePosition, Vector2 offset, float graphZoom)
 		{
+            bool result = false;
 			if (this.mEntryTask == null)
 			{
 				return false;
 			}
+            this.mEntryTask.drawNode(offset, false, false);
 			this.mEntryTask.drawNodeConnection(offset, graphZoom, false);
 			if (this.mRootNode != null)
 			{
 				this.drawNodeConnectionChildren(this.mRootNode, offset, graphZoom, this.mRootNode.Task.NodeData.Disabled);
+                result = this.drawNodeChildren(this.mRootNode, offset, this.mRootNode.Task.NodeData.Disabled);
 			}
-			for (int i = 0; i < this.mDetachedNodes.Count; i++)
-			{
-				this.drawNodeConnectionChildren(this.mDetachedNodes[i], offset, graphZoom, this.mDetachedNodes[i].Task.NodeData.Disabled);
-			}
-			for (int j = 0; j < this.mSelectedNodeConnections.Count; j++)
-			{
-				this.mSelectedNodeConnections[j].drawConnection(offset, graphZoom, this.mSelectedNodeConnections[j].OriginatingNodeDesigner.isDisabled());
-			}
-			if (mousePosition != new Vector2(-1f, -1f) && this.mActiveNodeConnection != null)
-			{
-				this.mActiveNodeConnection.HorizontalHeight = (this.mActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, this.mActiveNodeConnection.NodeConnectionType).y + mousePosition.y) / 2f;
-				this.mActiveNodeConnection.drawConnection(this.mActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, this.mActiveNodeConnection.NodeConnectionType), mousePosition, graphZoom, this.mActiveNodeConnection.NodeConnectionType == NodeConnectionType.Outgoing && this.mActiveNodeConnection.OriginatingNodeDesigner.isDisabled());
-			}
-			this.mEntryTask.drawNode(offset, false, false);
-			bool result = false;
-			if (this.mRootNode != null && this.drawNodeChildren(this.mRootNode, offset, this.mRootNode.Task.NodeData.Disabled))
-			{
-				result = true;
-			}
-			for (int k = 0; k < this.mDetachedNodes.Count; k++)
-			{
-				if (this.drawNodeChildren(this.mDetachedNodes[k], offset, this.mDetachedNodes[k].Task.NodeData.Disabled))
-				{
-					result = true;
-				}
-			}
-			for (int l = 0; l < this.mSelectedNodes.Count; l++)
-			{
-				if (this.mSelectedNodes[l].drawNode(offset, true, this.mSelectedNodes[l].isDisabled()))
-				{
-					result = true;
-				}
-			}
-			if (this.mRootNode != null)
-			{
-				this.drawNodeCommentChildren(this.mRootNode, offset);
-			}
-			for (int m = 0; m < this.mDetachedNodes.Count; m++)
-			{
-				this.drawNodeCommentChildren(this.mDetachedNodes[m], offset);
-			}
-			return result;
+            //绘制正在连接的线（鼠标拖动的连线）
+            if (mousePosition != new Vector2(-1f, -1f) && this.mActiveNodeConnection != null)
+            {
+                this.mActiveNodeConnection.HorizontalHeight = (this.mActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, this.mActiveNodeConnection.NodeConnectionType).y + mousePosition.y) / 2f;
+                this.mActiveNodeConnection.drawConnection(
+                    this.mActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, this.mActiveNodeConnection.NodeConnectionType),
+                    mousePosition,
+                    graphZoom,
+                    this.mActiveNodeConnection.NodeConnectionType == NodeConnectionType.Outgoing && this.mActiveNodeConnection.OriginatingNodeDesigner.isDisabled());
+            }
+            //绘制未连线的节点
+            for (int i = 0; i < this.mDetachedNodes.Count; i++)
+            {
+                //绘制节点一下所有节点的连线
+                this.drawNodeConnectionChildren(this.mDetachedNodes[i], offset, graphZoom, this.mDetachedNodes[i].Task.NodeData.Disabled);
+
+                //绘制自己和自己的子节点
+                if (this.drawNodeChildren(this.mDetachedNodes[i], offset, this.mDetachedNodes[i].Task.NodeData.Disabled))
+                {
+                    result = true;
+                }
+
+                this.drawNodeCommentChildren(this.mDetachedNodes[i], offset);
+            }
+            //绘制选中的节点
+            for (int l = 0; l < this.mSelectedNodes.Count; l++)
+            {
+                if (this.mSelectedNodes[l].drawNode(offset, true, this.mSelectedNodes[l].isDisabled()))
+                {
+                    result = true;
+                }
+            }
+            //绘制选中的连线
+            for (int j = 0; j < this.mSelectedNodeConnections.Count; j++)
+            {
+                this.mSelectedNodeConnections[j].drawConnection(offset, graphZoom, this.mSelectedNodeConnections[j].OriginatingNodeDesigner.isDisabled());
+            }
+            return result;
 		}
 
 		private bool drawNodeChildren(NodeDesigner nodeDesigner, Vector2 offset, bool disabledNode)
