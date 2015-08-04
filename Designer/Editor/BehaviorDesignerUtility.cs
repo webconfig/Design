@@ -951,7 +951,7 @@ namespace BehaviorDesigner.Editor
 		public static Texture2D LoadTexture(string imageName, bool useSkinColor = true, ScriptableObject obj = null)
 		{
 			Texture2D texture2D = null;
-            imageName = Application.dataPath + @"\" + string.Format(@"Designer\Resource\{0}{1}", useSkinColor ? (EditorGUIUtility.isProSkin ? "Dark" : "Light") : "", imageName);
+            imageName = Application.dataPath + @"\" + string.Format(@"\trunk\Designer\Resource\{0}{1}", useSkinColor ? (EditorGUIUtility.isProSkin ? "Dark" : "Light") : "", imageName);
             Stream manifestResourceStream = null;
             try
             {

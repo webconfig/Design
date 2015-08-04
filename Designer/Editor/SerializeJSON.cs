@@ -11,6 +11,12 @@ namespace BehaviorDesigner.Editor
 {
 	public class SerializeJSON : UnityEngine.Object
 	{
+        /// <summary>
+        /// 序列化行为树
+        /// </summary>
+        /// <param name="origBehaviorSource"></param>
+        /// <param name="newBehaviorSource"></param>
+        /// <returns></returns>
 		public static string Serialize(BehaviorSource origBehaviorSource, BehaviorSource newBehaviorSource = null)
 		{
 			origBehaviorSource.CheckForJSONSerialization(false);
@@ -22,15 +28,15 @@ namespace BehaviorDesigner.Editor
 			int num = 0;
 			Dictionary<string, object> dictionary = new Dictionary<string, object>();
 			if (origBehaviorSource.EntryTask != null)
-			{
+            {//序列化根节点
 				dictionary.Add("EntryTask", SerializeJSON.SerializeTask(origBehaviorSource.EntryTask, newBehaviorSource.Owner, ref num));
 			}
 			if (origBehaviorSource.RootTask != null)
-			{
+            {//序列化根节点
 				dictionary.Add("RootTask", SerializeJSON.SerializeTask(origBehaviorSource.RootTask, newBehaviorSource.Owner, ref num));
 			}
 			if (origBehaviorSource.DetachedTasks != null && origBehaviorSource.DetachedTasks.Count > 0)
-			{
+            {//序列化未连接的节点
 				Dictionary<string, object>[] array = new Dictionary<string, object>[origBehaviorSource.DetachedTasks.Count];
 				for (int i = 0; i < origBehaviorSource.DetachedTasks.Count; i++)
 				{
@@ -39,7 +45,7 @@ namespace BehaviorDesigner.Editor
 				dictionary.Add("DetachedTasks", array);
 			}
 			if (origBehaviorSource.Variables != null && origBehaviorSource.Variables.Count > 0)
-			{
+            {//序列化节点里面的变量
 				Dictionary<string, object>[] array2 = new Dictionary<string, object>[origBehaviorSource.Variables.Count];
 				for (int j = 0; j < origBehaviorSource.Variables.Count; j++)
 				{
@@ -51,6 +57,13 @@ namespace BehaviorDesigner.Editor
 			return Json.Serialize(dictionary);
 		}
 
+        /// <summary>
+        /// 序列化任务
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="behavior"></param>
+        /// <param name="taskCount"></param>
+        /// <returns></returns>
 		private static Dictionary<string, object> SerializeTask(Task task, IBehavior behavior, ref int taskCount)
 		{
 			Dictionary<string, object> dictionary = new Dictionary<string, object>();
@@ -61,7 +74,7 @@ namespace BehaviorDesigner.Editor
 			taskCount++;
 			SerializeJSON.SerializeFields(task, ref dictionary, behavior);
 			if (task.GetType().IsSubclassOf(typeof(ParentTask)))
-			{
+            {//序列化子节点
 				ParentTask parentTask = task as ParentTask;
 				if (parentTask.Children != null && parentTask.Children.Count > 0)
 				{
@@ -76,6 +89,12 @@ namespace BehaviorDesigner.Editor
 			return dictionary;
 		}
 
+        /// <summary>
+        /// 序列化变量
+        /// </summary>
+        /// <param name="sharedVariable"></param>
+        /// <param name="behavior"></param>
+        /// <returns></returns>
 		private static Dictionary<string, object> SerializeVariable(SharedVariable sharedVariable, IBehavior behavior)
 		{
 			Dictionary<string, object> dictionary = new Dictionary<string, object>();

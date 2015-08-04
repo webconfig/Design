@@ -49,13 +49,21 @@ namespace BehaviorDesigner.Editor
 		private string mGraphStatus = "";
 
 		private Vector2 mSelectStartPosition = Vector2.zero;
-
+        /// <summary>
+        /// 是否点击了绘图区域
+        /// </summary>
 		private bool mIsSelecting;
-
+        /// <summary>
+        /// 是否正在拖动节点
+        /// </summary>
 		private bool mIsDragging;
-
+        /// <summary>
+        /// 让节点持续处于选中状态
+        /// </summary>
 		private bool mKeepTasksSelected;
-
+        /// <summary>
+        /// 是否有节点被选中
+        /// </summary>
 		private bool mNodeClicked;
 
 		private bool mUpdateNodeTaskMap;
@@ -86,7 +94,9 @@ namespace BehaviorDesigner.Editor
 		private TaskList mTaskList;
 
 		private VariableInspector mVariableInspector;
-
+        /// <summary>
+        /// 当前选中的节点
+        /// </summary>
 		[SerializeField]
 		private UnityEngine.Object mActiveObject;
 
@@ -95,7 +105,9 @@ namespace BehaviorDesigner.Editor
 		private BehaviorSource mActiveBehaviorSource;
 
 		private int mActiveBehaviorID = -1;
-
+        /// <summary>
+        /// 管理器
+        /// </summary>
 		private BehaviorManager mBehaviorManager;
 
 		private bool mLockActiveGameObject;
@@ -1072,6 +1084,7 @@ namespace BehaviorDesigner.Editor
 			{
 				return;
 			}
+            //得到任务显示的坐标
 			Vector2 vector = new Vector2(this.mGraphRect.width / (2f * this.mGraphZoom), 150f);
 			if (useMousePosition)
 			{
@@ -1092,6 +1105,10 @@ namespace BehaviorDesigner.Editor
             }
 		}
 
+        /// <summary>
+        ///  是否正在更新任务
+        /// </summary>
+        /// <returns></returns>
 		public bool isReferencingTasks()
 		{
 			return this.mTaskInspector.ActiveReferenceTask != null;
@@ -1316,23 +1333,26 @@ namespace BehaviorDesigner.Editor
 			}
 			return this.mGraphDesigner.HoverNode != null;
 		}
-
+        //鼠标左键按下
 		private bool leftMouseDown(int clickCount)
 		{
 			Vector2 point;
+            //点击点是否在绘图区域内
 			if (!this.getMousePositionInGraph(out point))
 			{
 				return false;
 			}
+            //属性菜单栏是否显示点击点的任务的属性
 			if (this.propertiesInspectorHasFocus())
 			{
 				this.mTaskInspector.clearFocus();
 				this.mVariableInspector.clearFocus();
 				base.Repaint();
 			}
+            //获取点击的任务
 			NodeDesigner nodeDesigner = this.mGraphDesigner.nodeAt(point, this.mGraphOffset);
             if (Event.current.modifiers == EventModifiers.Alt)
-			{
+            {//是否按住了alt按键
 				this.mNodeClicked = this.mGraphDesigner.isSelected(nodeDesigner);
 				return false;
 			}
@@ -1349,7 +1369,7 @@ namespace BehaviorDesigner.Editor
 				return true;
 			}
 			if (nodeDesigner != null)
-			{
+			{//点击的任务不为空
 				if (this.mGraphDesigner.HoverNode != null && !nodeDesigner.Equals(this.mGraphDesigner.HoverNode))
 				{
 					this.mGraphDesigner.clearHover();
@@ -1357,18 +1377,19 @@ namespace BehaviorDesigner.Editor
 				}
 				NodeConnection nodeConnection;
 				if ((nodeConnection = nodeDesigner.nodeConnectionRectContains(point, this.mGraphOffset)) != null)
-				{
+                {//点击到连线区域
 					if (this.mGraphDesigner.nodeCanOriginateConnection(nodeDesigner, nodeConnection))
 					{
 						this.mGraphDesigner.ActiveNodeConnection = nodeConnection;
 					}
 					return true;
 				}
+                //判断点击的点是否在任务里面
 				if (nodeDesigner.contains(point, this.mGraphOffset, false))
 				{
 					this.mKeepTasksSelected = false;
 					if (this.mGraphDesigner.isSelected(nodeDesigner))
-					{
+                    {//选中状态被点击
                         if (Event.current.modifiers == EventModifiers.Control)
 						{
 							this.mKeepTasksSelected = true;
@@ -1380,11 +1401,11 @@ namespace BehaviorDesigner.Editor
 						}
 					}
 					else
-					{
+                    {//未被选中状态点击
                         if (Event.current.modifiers != EventModifiers.Shift && Event.current.modifiers != EventModifiers.Control)
 						{
-							this.mGraphDesigner.clearNodeSelection();
-							this.mGraphDesigner.clearConnectionSelection();
+                            this.mGraphDesigner.clearNodeSelection();//清理选中的节点
+                            this.mGraphDesigner.clearConnectionSelection();//清理选中的线
 							if (BehaviorDesignerPreferences.GetBool(BDPreferneces.OpenInspectorOnTaskSelection))
 							{
 								this.mBehaviorToolbarSelection = 3;
@@ -1394,8 +1415,9 @@ namespace BehaviorDesigner.Editor
 						{
 							this.mKeepTasksSelected = true;
 						}
-						this.mGraphDesigner.select(nodeDesigner);
+                        this.mGraphDesigner.select(nodeDesigner);//让节点处于选中状态
 					}
+                    //获取节点是否被选中
 					this.mNodeClicked = this.mGraphDesigner.isSelected(nodeDesigner);
 					return true;
 				}
@@ -1415,7 +1437,7 @@ namespace BehaviorDesigner.Editor
 			List<NodeConnection> list = new List<NodeConnection>();
 			this.mGraphDesigner.nodeConnectionsAt(point, this.mGraphOffset, ref list);
 			if (list.Count > 0)
-			{
+            {//点击到连接的线
                 if (Event.current.modifiers != EventModifiers.Shift && Event.current.modifiers != EventModifiers.Control)
 				{
 					this.mGraphDesigner.clearNodeSelection();
@@ -1448,7 +1470,10 @@ namespace BehaviorDesigner.Editor
 			this.mNodeClicked = false;
 			return true;
 		}
-
+        /// <summary>
+        /// 鼠标左键拖动
+        /// </summary>
+        /// <returns></returns>
 		private bool leftMouseDragged()
 		{
 			Vector2 vector;
@@ -1457,17 +1482,17 @@ namespace BehaviorDesigner.Editor
 				return false;
 			}
             if (Event.current.modifiers != EventModifiers.Alt)
-			{
+            {//不是拖动
 				if (this.isReferencingTasks())
 				{
 					return true;
 				}
 				if (this.mIsSelecting)
-				{
-					this.mGraphDesigner.clearNodeSelection();
+                {//先点击了绘图区域
+                    this.mGraphDesigner.clearNodeSelection();//清理掉选中的节点
 					List<NodeDesigner> list = this.mGraphDesigner.nodesAt(this.getSelectionArea(), this.mGraphOffset);
 					if (list != null)
-					{
+                    {//区域选择
 						for (int i = 0; i < list.Count; i++)
 						{
 							this.mGraphDesigner.select(list[i]);
@@ -1481,7 +1506,7 @@ namespace BehaviorDesigner.Editor
 				}
 			}
 			if (this.mNodeClicked)
-			{
+            {//有节点被选中
                 bool flag = this.mGraphDesigner.dragSelectedNodes(Event.current.delta / this.mGraphZoom, Event.current.modifiers != EventModifiers.Alt, this.mIsDragging);
 				if (flag)
 				{
@@ -1492,7 +1517,10 @@ namespace BehaviorDesigner.Editor
 			}
 			return false;
 		}
-
+        /// <summary>
+        /// 鼠标左键抬起
+        /// </summary>
+        /// <returns></returns>
 		private bool leftMouseRelease()
 		{
 			this.mNodeClicked = false;
@@ -1514,18 +1542,18 @@ namespace BehaviorDesigner.Editor
 			else
 			{
 				if (this.mIsSelecting)
-				{
+                {//正在选择节点
 					this.mIsSelecting = false;
 					return true;
 				}
 				if (this.mIsDragging)
-				{
+                {//正在拖动节点
 					this.saveBehavior();
 					this.mIsDragging = false;
 					return true;
 				}
 				if (this.mGraphDesigner.ActiveNodeConnection != null)
-				{
+                {//存在连接的节点
 					Vector2 point;
 					if (!this.getMousePositionInGraph(out point))
 					{
@@ -1534,7 +1562,7 @@ namespace BehaviorDesigner.Editor
 					}
 					NodeDesigner nodeDesigner = this.mGraphDesigner.nodeAt(point, this.mGraphOffset);
 					if (nodeDesigner != null && !nodeDesigner.Equals(this.mGraphDesigner.ActiveNodeConnection.OriginatingNodeDesigner) && this.mGraphDesigner.nodeCanAcceptConnection(nodeDesigner, this.mGraphDesigner.ActiveNodeConnection))
-					{
+                    {//连接节点
 						this.mGraphDesigner.connectNodes(this.mActiveBehaviorSource, nodeDesigner);
 						this.saveBehavior();
 					}
@@ -1630,7 +1658,10 @@ namespace BehaviorDesigner.Editor
 		}
 
 
-
+        /// <summary>
+        /// 属性菜单栏是否显示点击点的任务的属性
+        /// </summary>
+        /// <returns></returns>
 		private bool propertiesInspectorHasFocus()
 		{
 			return this.mTaskInspector.hasFocus() || this.mVariableInspector.hasFocus();
@@ -1761,7 +1792,11 @@ namespace BehaviorDesigner.Editor
 				this.mGraphScrollPosition = (this.mGraphScrollSize - new Vector2(this.mGraphRect.width, this.mGraphRect.height)) / 2f - 2f * new Vector2((float)BehaviorDesignerUtility.ScrollBarSize, (float)BehaviorDesignerUtility.ScrollBarSize);
 			}
 		}
-
+        /// <summary>
+        /// 点击点是否在绘图区域内
+        /// </summary>
+        /// <param name="mousePosition"></param>
+        /// <returns></returns>
 		private bool getMousePositionInGraph(out Vector2 mousePosition)
 		{
 			mousePosition = this.mCurrentMousePosition;
@@ -1788,7 +1823,9 @@ namespace BehaviorDesigner.Editor
 			float num4 = (this.mSelectStartPosition.y > vector.y) ? this.mSelectStartPosition.y : vector.y;
 			return new Rect(num, num3, num2 - num, num4 - num3);
 		}
-
+        /// <summary>
+        /// 保存
+        /// </summary>
 		private void saveBehavior()
 		{
 			if (this.mActiveBehaviorSource == null)
@@ -1796,6 +1833,7 @@ namespace BehaviorDesigner.Editor
 				return;
 			}
 			this.mGraphDesigner.save(this.mActiveBehaviorSource);
+            ////序列化行为树数据
 			this.mActiveBehaviorSource.Serialization = SerializeJSON.Serialize(this.mActiveBehaviorSource, null);
 			if (!AssetDatabase.GetAssetPath(this.mActiveObject).Equals(""))
 			{
