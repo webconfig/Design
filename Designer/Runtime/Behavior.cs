@@ -206,6 +206,9 @@ namespace BehaviorDesigner.Runtime
 			this.EnableBehavior();
 		}
 
+        /// <summary>
+        ///  运行行为树
+        /// </summary>
 		public void EnableBehavior()
 		{
 			this.mBehaviorSource.CheckForJSONSerialization(false);

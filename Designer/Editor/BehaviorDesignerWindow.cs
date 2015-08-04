@@ -1093,7 +1093,7 @@ namespace BehaviorDesigner.Editor
 			vector -= this.mGraphOffset;
 			BehaviorUndo.RegisterUndo("Add", this.mGraphDesigner, true, true);
 			GameObject gameObject = this.mActiveObject as GameObject;
-            Debug.Log(gameObject.name);
+            //Debug.Log(gameObject.name);
             if (gameObject != null && gameObject.GetComponent<Behavior>() == null)
             {
                 this.addBehavior();

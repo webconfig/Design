@@ -30,6 +30,9 @@ namespace BehaviorDesigner.Editor
 		[SerializeField]
 		private bool mIsDirty;
 
+        /// <summary>
+        /// 是否有子节点
+        /// </summary>
 		[SerializeField]
 		private bool isParent;
 
@@ -42,14 +45,23 @@ namespace BehaviorDesigner.Editor
 		[SerializeField]
 		private bool showHoverBar;
 
+        /// <summary>
+        /// 节点的任务名称
+        /// </summary>
 		[SerializeField]
-		private string taskName = "";
+        public string taskName = "";
 
 		private bool prevRunningState;
 
+        /// <summary>
+        ///  父节点
+        /// </summary>
 		[SerializeField]
 		private NodeDesigner parentNodeDesigner;
 
+        /// <summary>
+        /// 连接到子节点的连线
+        /// </summary>
 		[SerializeField]
 		private List<NodeConnection> outgoingNodeConnections;
 
@@ -125,6 +137,9 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
+        /// <summary>
+        /// 节点被选中
+        /// </summary>
 		public void select()
 		{
 			if (!this.isEntryDisplay)
@@ -180,6 +195,11 @@ namespace BehaviorDesigner.Editor
 			return result;
 		}
 
+        /// <summary>
+        /// 反序列化，夹在一个任务
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="id"></param>
 		public void loadTask(Task task, ref int id)
 		{
 			if (task == null)
@@ -224,6 +244,13 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
+        /// <summary>
+        /// 初始化该节点
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="behaviorSource"></param>
+        /// <param name="position"></param>
+        /// <param name="id"></param>
 		public void loadNode(Task task, BehaviorSource behaviorSource, Vector2 position, ref int id)
 		{
 			this.mTask = task;
@@ -286,7 +313,7 @@ namespace BehaviorDesigner.Editor
 		}
 
 		private void init()
-		{
+        {//获取名称
 			this.taskName = BehaviorDesignerUtility.SplitCamelCase(this.mTask.GetType().Name.ToString());
 			this.isParent = this.mTask.GetType().IsSubclassOf(typeof(ParentTask));
 			if (this.isParent)
@@ -338,6 +365,13 @@ namespace BehaviorDesigner.Editor
 			return new Rect(this.mTask.NodeData.Position.x + offset.x - num / 2f, this.mTask.NodeData.Position.y + offset.y, num, (float)(BehaviorDesignerUtility.IconAreaHeight + BehaviorDesignerUtility.TitleHeight));
 		}
 
+        /// <summary>
+        /// 绘制节点
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="drawSelected"></param>
+        /// <param name="disabled"></param>
+        /// <returns></returns>
 		public bool drawNode(Vector2 offset, bool drawSelected, bool disabled)
 		{
 			if (drawSelected != this.mSelected)
