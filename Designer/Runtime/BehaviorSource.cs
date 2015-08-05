@@ -16,8 +16,8 @@ namespace BehaviorDesigner.Runtime
 
 		private bool isDirty = true;
 
-		[SerializeField]
-		private Task mEntryTask;
+        //[SerializeField]
+        //private Task mEntryTask;
 
 		[SerializeField]
 		private Task mRootTask;
@@ -60,17 +60,17 @@ namespace BehaviorDesigner.Runtime
 			}
 		}
 
-		public Task EntryTask
-		{
-			get
-			{
-				return this.mEntryTask;
-			}
-			set
-			{
-				this.mEntryTask = value;
-			}
-		}
+        //public Task EntryTask
+        //{
+        //    get
+        //    {
+        //        return this.mEntryTask;
+        //    }
+        //    set
+        //    {
+        //        this.mEntryTask = value;
+        //    }
+        //}
 
 		public Task RootTask
 		{
@@ -138,23 +138,25 @@ namespace BehaviorDesigner.Runtime
 			this.mOwner = owner;
 		}
 
-		public void save(Task entryTask, Task rootTask, List<Task> detachedTasks)
+		public void save(Task rootTask, List<Task> detachedTasks)
 		{
-			this.mEntryTask = entryTask;
+            //this.mEntryTask = entryTask;
 			this.mRootTask = rootTask;
 			this.mDetachedTasks = detachedTasks;
 		}
 
-		public void load(out Task entryTask, out Task rootTask, out List<Task> detachedTasks)
+		public void load(out Task rootTask, out List<Task> detachedTasks)
 		{
-			entryTask = this.mEntryTask;
 			rootTask = this.mRootTask;
 			detachedTasks = this.mDetachedTasks;
 		}
 
 		public void CheckForJSONSerialization(bool force)
 		{
-			if (this.mSerialization != null && !this.mSerialization.Equals("") && ((this.mEntryTask == null && (this.mVariables == null || this.mVariables.Count == 0 || this.mVariables[0] == null)) || force))
+            //Debug.Log((this.mSerialization != null) + "--" + (!this.mSerialization.Equals("")) + "--" + ((this.mRootTask == null && (this.mVariables == null || this.mVariables.Count == 0 || this.mVariables[0] == null)) || force));
+			if (this.mSerialization != null && 
+                !this.mSerialization.Equals("") && 
+                ((this.mRootTask == null && (this.mVariables == null || this.mVariables.Count == 0 || this.mVariables[0] == null)) || force))
 			{
 				DeserializeJSON.Deserialize(this);
 			}

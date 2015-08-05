@@ -36,8 +36,11 @@ namespace BehaviorDesigner.Editor
 		[SerializeField]
 		private bool isParent;
 
+        /// <summary>
+        /// 是否是根节点显示方式
+        /// </summary>
 		[SerializeField]
-		private bool isEntryDisplay;
+		private bool isRootDisplay;
 
 		[SerializeField]
 		private bool showReferenceIcon;
@@ -86,11 +89,11 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
-		public bool IsEntryDisplay
+		public bool IsRootDisplay
 		{
 			get
 			{
-				return this.isEntryDisplay;
+                return this.isRootDisplay;
 			}
 		}
 
@@ -145,7 +148,7 @@ namespace BehaviorDesigner.Editor
         /// </summary>
 		public void select()
 		{
-			if (!this.isEntryDisplay)
+            if (!this.isRootDisplay)
 			{
 				this.mSelected = true;
 			}
@@ -318,6 +321,8 @@ namespace BehaviorDesigner.Editor
 		private void init()
         {//获取名称
 			this.taskName = BehaviorDesignerUtility.SplitCamelCase(this.mTask.GetType().Name.ToString());
+
+            //Debug.Log("taskName:" + taskName);
 			this.isParent = this.mTask.GetType().IsSubclassOf(typeof(ParentTask));
 			if (this.isParent)
 			{
@@ -325,11 +330,24 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
-		public void makeEntryDisplay()
+        /// <summary>
+        /// 重置连接
+        /// </summary>
+        public void ResetNodeConnection()
+        {
+            this.outgoingNodeConnections = new List<NodeConnection>();
+        }
+
+
+        /// <summary>
+        /// 根节点显示方式
+        /// </summary>
+		public void RootDisplay()
 		{
-			this.isEntryDisplay = (this.isParent = true);
-			this.mTask.NodeData.FriendlyName = (this.taskName = "Entry");
-			this.outgoingNodeConnections = new List<NodeConnection>();
+            this.isRootDisplay = (this.isParent = true);
+            //if (taskName == "Entry Task") { Debug.Log("isRootDisplay:" + this.isRootDisplay); }
+            this.mTask.NodeData.FriendlyName = (this.taskName = "Entry");
+            
 		}
 
 		private Rect rectangle(Vector2 offset, bool includeConnections)
@@ -337,7 +355,7 @@ namespace BehaviorDesigner.Editor
 			Rect result = this.rectangle(offset);
 			if (includeConnections)
 			{
-				if (!this.isEntryDisplay)
+				if (!this.isRootDisplay)
 				{
 					result.yMin=result.yMin - (float)BehaviorDesignerUtility.TopConnectionHeight;
 				}
@@ -383,7 +401,7 @@ namespace BehaviorDesigner.Editor
 			}
 			Rect rect = this.rectangle(offset, false);
 			bool flag = (this.mTask.NodeData.PushTime != -1f && this.mTask.NodeData.PushTime >= this.mTask.NodeData.PopTime) ||
-                        (this.isEntryDisplay && this.outgoingNodeConnections.Count > 0 && this.outgoingNodeConnections[0].DestinationNodeDesigner.Task.NodeData.PushTime != -1f);
+                        (this.isRootDisplay && this.outgoingNodeConnections.Count > 0 && this.outgoingNodeConnections[0].DestinationNodeDesigner.Task.NodeData.PushTime != -1f);
 			bool flag2 = this.mIdentifyUpdateCount != -1;
 			float num = BehaviorDesignerPreferences.GetBool(BDPreferneces.FadeNodes) ? BehaviorDesignerUtility.NodeFadeDuration : 0.01f;
 			float num2 = 0f;
@@ -410,9 +428,9 @@ namespace BehaviorDesigner.Editor
 			{
 				num2 = 1f;
 			}
-			else if ((this.mTask.NodeData.PopTime != -1f && num != 0f && Time.realtimeSinceStartup - this.mTask.NodeData.PopTime < num) || (this.isEntryDisplay && this.outgoingNodeConnections.Count > 0 && this.outgoingNodeConnections[0].DestinationNodeDesigner.Task.NodeData.PopTime != -1f && Time.realtimeSinceStartup - this.outgoingNodeConnections[0].DestinationNodeDesigner.Task.NodeData.PopTime < num))
+			else if ((this.mTask.NodeData.PopTime != -1f && num != 0f && Time.realtimeSinceStartup - this.mTask.NodeData.PopTime < num) || (this.isRootDisplay && this.outgoingNodeConnections.Count > 0 && this.outgoingNodeConnections[0].DestinationNodeDesigner.Task.NodeData.PopTime != -1f && Time.realtimeSinceStartup - this.outgoingNodeConnections[0].DestinationNodeDesigner.Task.NodeData.PopTime < num))
 			{
-				if (this.isEntryDisplay)
+				if (this.isRootDisplay)
 				{
 					num2 = 1f - (Time.realtimeSinceStartup - this.outgoingNodeConnections[0].DestinationNodeDesigner.Task.NodeData.PopTime) / num;
 				}
@@ -421,7 +439,7 @@ namespace BehaviorDesigner.Editor
 					num2 = 1f - (Time.realtimeSinceStartup - this.mTask.NodeData.PopTime) / num;
 				}
 			}
-			if (!this.isEntryDisplay && !this.prevRunningState && flag)
+			if (!this.isRootDisplay && !this.prevRunningState && flag)
 			{
 				this.parentNodeDesigner.bringConnectionToFront(this);
 			}
@@ -429,7 +447,7 @@ namespace BehaviorDesigner.Editor
 			if (num2 != 1f)
 			{
 				GUI.color=(disabled || this.mTask.NodeData.Disabled) ? new Color(0.7f, 0.7f, 0.7f) : Color.white;
-				if (!this.isEntryDisplay)
+				if (!this.isRootDisplay)
 				{
 					GUI.DrawTexture(
                         new Rect(
@@ -440,6 +458,9 @@ namespace BehaviorDesigner.Editor
                         , 
                         BehaviorDesignerUtility.TaskConnectionTopTexture, ScaleMode.ScaleToFit);
 				}
+
+                //if (taskName == "Entry Task") { Debug.Log("isRootDisplay:" + this.isRootDisplay); }
+
 				if (this.isParent)
 				{
 					GUI.DrawTexture(
@@ -481,7 +502,7 @@ namespace BehaviorDesigner.Editor
 				Color color = (disabled || this.mTask.NodeData.Disabled) ? new Color(0.7f, 0.7f, 0.7f) : Color.white;
 				color.a = num2;
 				GUI.color=color;
-				if (!this.isEntryDisplay)
+				if (!this.isRootDisplay)
 				{
 					Texture2D texture2D2;
 					if (this.mIdentifyUpdateCount != -1)
@@ -566,11 +587,15 @@ namespace BehaviorDesigner.Editor
 
 		public void drawNodeConnection(Vector2 offset, float graphZoom, bool disabled)
 		{
+            //Debug.Log(taskName + "-------------mIsDirty:" + mIsDirty); 
+
 			if (this.mIsDirty)
 			{
 				this.determineConnectionHorizontalHeight(this.rectangle(offset, false), offset);
 				this.mIsDirty = false;
 			}
+            //if (taskName == "Entry") { Debug.Log("isRootDisplay:" + this.isParent); }
+
 			if (this.isParent)
 			{
 				for (int i = 0; i < this.outgoingNodeConnections.Count; i++)
@@ -662,7 +687,7 @@ namespace BehaviorDesigner.Editor
 
 		public void connectionContains(Vector2 point, Vector2 offset, ref List<NodeConnection> nodeConnections)
 		{
-			if (this.outgoingNodeConnections == null || this.isEntryDisplay)
+			if (this.outgoingNodeConnections == null || this.isRootDisplay)
 			{
 				return;
 			}
@@ -796,12 +821,12 @@ namespace BehaviorDesigner.Editor
 			}
 			else 
 			{//节点不是Entry开始节点
-                if (this.isEntryDisplay)
-                {
-                    Debug.Log(this.taskName + "--" + childNodeDesigner.taskName);
-                }
-                else
-                {
+                //if (this.isRootDisplay)
+                //{
+                //    Debug.Log(this.taskName + "--" + childNodeDesigner.taskName);
+                //}
+                //else
+                //{
                     ParentTask parentTask2 = this.mTask as ParentTask;
                     int num = 0;
                     if (parentTask2.Children != null)
@@ -813,7 +838,7 @@ namespace BehaviorDesigner.Editor
                         }
                     }
                     parentTask2.AddChild(childNodeDesigner.Task, num);
-                }
+                //}
 			}
 
 			childNodeDesigner.ParentNodeDesigner = this;//子节点的父节点是自己
@@ -828,25 +853,25 @@ namespace BehaviorDesigner.Editor
 			this.mIsDirty = true;
 		}
 
-		public void removeChildNode(NodeDesigner childNodeDesigner)
-		{
-			if (!this.isEntryDisplay)
-			{
-				ParentTask parentTask = this.mTask as ParentTask;
-				parentTask.Children.Remove(childNodeDesigner.Task);
-			}
-			for (int i = 0; i < this.outgoingNodeConnections.Count; i++)
-			{
-				NodeConnection nodeConnection = this.outgoingNodeConnections[i];
-				if (nodeConnection.DestinationNodeDesigner.Equals(childNodeDesigner) || nodeConnection.OriginatingNodeDesigner.Equals(childNodeDesigner))
-				{
-					this.outgoingNodeConnections.RemoveAt(i);
-					break;
-				}
-			}
-			childNodeDesigner.ParentNodeDesigner = null;
-			this.mIsDirty = true;
-		}
+        public void removeChildNode(NodeDesigner childNodeDesigner)
+        {
+            //if (!this.isRootDisplay)
+            //{
+            ParentTask parentTask = this.mTask as ParentTask;
+            parentTask.Children.Remove(childNodeDesigner.Task);
+            //}
+            for (int i = 0; i < this.outgoingNodeConnections.Count; i++)
+            {
+                NodeConnection nodeConnection = this.outgoingNodeConnections[i];
+                if (nodeConnection.DestinationNodeDesigner.Equals(childNodeDesigner) || nodeConnection.OriginatingNodeDesigner.Equals(childNodeDesigner))
+                {
+                    this.outgoingNodeConnections.RemoveAt(i);
+                    break;
+                }
+            }
+            childNodeDesigner.ParentNodeDesigner = null;
+            this.mIsDirty = true;
+        }
 
 		public void setID(ref int id)
 		{

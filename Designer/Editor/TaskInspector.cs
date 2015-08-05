@@ -53,7 +53,7 @@ namespace BehaviorDesigner.Editor
 
 		public bool drawTaskFields(BehaviorSource behaviorSource, Task task)
 		{
-			if (task == null || (task.NodeData.NodeDesigner as NodeDesigner).IsEntryDisplay)
+			if (task == null || (task.NodeData.NodeDesigner as NodeDesigner).IsRootDisplay)
 			{
 				return false;
 			}

@@ -28,6 +28,7 @@ namespace BehaviorDesigner.Runtime
 			bool result = false;
 			Dictionary<DeserializeJSON.TaskField, List<int>> dictionary = new Dictionary<DeserializeJSON.TaskField, List<int>>();
 			Dictionary<int, Task> dictionary2 = new Dictionary<int, Task>();
+            //Debug.Log("Serialization:" + behaviorSource.Serialization);
 			Dictionary<string, object> dictionary3 = Json.Deserialize(behaviorSource.Serialization) as Dictionary<string, object>;
 			if (dictionary3.ContainsKey("Variables"))
 			{
@@ -41,11 +42,11 @@ namespace BehaviorDesigner.Runtime
 				behaviorSource.Variables = list;
 				result = true;
 			}
-			if (dictionary3.ContainsKey("EntryTask"))
-			{
-				behaviorSource.EntryTask = DeserializeJSON.DeserializeTask(behaviorSource, dictionary3["EntryTask"] as Dictionary<string, object>, ref dictionary2, ref dictionary);
-				result = true;
-			}
+            //if (dictionary3.ContainsKey("EntryTask"))
+            //{
+            //    behaviorSource.EntryTask = DeserializeJSON.DeserializeTask(behaviorSource, dictionary3["EntryTask"] as Dictionary<string, object>, ref dictionary2, ref dictionary);
+            //    result = true;
+            //}
 			if (dictionary3.ContainsKey("RootTask"))
 			{
 				behaviorSource.RootTask = DeserializeJSON.DeserializeTask(behaviorSource, dictionary3["RootTask"] as Dictionary<string, object>, ref dictionary2, ref dictionary);

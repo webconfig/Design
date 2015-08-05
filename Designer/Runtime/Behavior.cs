@@ -148,12 +148,12 @@ namespace BehaviorDesigner.Runtime
 				this.mBehaviorSource = new BehaviorSource(this);
 			}
 			bool result = false;
-			if (this.entryTask != null)
-			{
-				this.mBehaviorSource.EntryTask = this.entryTask;
-				this.entryTask = null;
-				result = true;
-			}
+            //if (this.entryTask != null)
+            //{
+            //    this.mBehaviorSource.EntryTask = this.entryTask;
+            //    this.entryTask = null;
+            //    result = true;
+            //}
 			if (this.rootTask != null)
 			{
 				this.mBehaviorSource.RootTask = this.rootTask;
@@ -414,6 +414,10 @@ namespace BehaviorDesigner.Runtime
 			}
 			return null;
 		}
+        /// <summary>
+        /// 获取当前脚步ID
+        /// </summary>
+        /// <returns></returns>
 
 		int IBehavior.GetInstanceID()
 		{

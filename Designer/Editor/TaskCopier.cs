@@ -115,10 +115,10 @@ namespace BehaviorDesigner.Editor
 						behaviorSource.Variables = list;
 					}
 					Task task;
-					if (TaskCopier.CopySerialized(behaviorSource, behaviorSource2.EntryTask, out task, hideFlags))
-					{
-						behaviorSource.EntryTask = task;
-					}
+                    //if (TaskCopier.CopySerialized(behaviorSource, behaviorSource2.EntryTask, out task, hideFlags))
+                    //{
+                    //    behaviorSource.EntryTask = task;
+                    //}
 					if (TaskCopier.CopySerialized(behaviorSource, behaviorSource2.RootTask, out task, hideFlags))
 					{
 						behaviorSource.RootTask = task;
@@ -140,7 +140,7 @@ namespace BehaviorDesigner.Editor
 					if (!AssetDatabase.GetAssetPath(behavior.GetObject()).Equals(""))
 					{
 						behaviorSource.Variables = null;
-						behaviorSource.EntryTask = null;
+                        //behaviorSource.EntryTask = null;
 						behaviorSource.RootTask = null;
 						behaviorSource.DetachedTasks = null;
 					}

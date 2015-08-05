@@ -896,10 +896,10 @@ namespace BehaviorDesigner.Editor
 		public static int TaskCount(BehaviorSource behaviorSource)
 		{
 			int num = 0;
-			if (behaviorSource.EntryTask != null)
-			{
-				num++;
-			}
+            //if (behaviorSource.EntryTask != null)
+            //{
+            //    num++;
+            //}
 			if (behaviorSource.RootTask != null)
 			{
 				BehaviorDesignerUtility.TaskCount(behaviorSource.RootTask, ref num);

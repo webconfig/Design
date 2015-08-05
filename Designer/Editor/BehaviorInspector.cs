@@ -37,33 +37,32 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
-		private void FindOnSceneGUITasks()
-		{
-			BehaviorSource behaviorSource = (base.target as Behavior).GetBehaviorSource();
-			if (behaviorSource.EntryTask != null)
-			{
-				this.onSceneGUITasks = new List<Task>();
-				Type[] types = Assembly.GetAssembly(typeof(Task)).GetTypes();
-				for (int i = 0; i < types.Length; i++)
-				{
-					MethodInfo method;
-					if (types[i].IsSubclassOf(typeof(Task)) && (method = types[i].GetMethod("OnSceneGUI")) != null && method.DeclaringType == types[i])
-					{
-						if (behaviorSource.RootTask != null)
-						{
-							this.AddTasksOfType(behaviorSource.RootTask, types[i], ref this.onSceneGUITasks);
-						}
-						if (behaviorSource.DetachedTasks != null)
-						{
-							for (int j = 0; j < behaviorSource.DetachedTasks.Count; j++)
-							{
-								this.AddTasksOfType(behaviorSource.DetachedTasks[j], types[i], ref this.onSceneGUITasks);
-							}
-						}
-					}
-				}
-			}
-		}
+        private void FindOnSceneGUITasks()
+        {
+            BehaviorSource behaviorSource = (base.target as Behavior).GetBehaviorSource();
+            if (behaviorSource.RootTask != null)
+            {
+                this.onSceneGUITasks = new List<Task>();
+                Type[] types = Assembly.GetAssembly(typeof(Task)).GetTypes();
+                for (int i = 0; i < types.Length; i++)
+                {
+                    MethodInfo method;
+                    if (types[i].IsSubclassOf(typeof(Task)) && (method = types[i].GetMethod("OnSceneGUI")) != null && method.DeclaringType == types[i])
+                    {
+
+                        this.AddTasksOfType(behaviorSource.RootTask, types[i], ref this.onSceneGUITasks);
+
+                        if (behaviorSource.DetachedTasks != null)
+                        {
+                            for (int j = 0; j < behaviorSource.DetachedTasks.Count; j++)
+                            {
+                                this.AddTasksOfType(behaviorSource.DetachedTasks[j], types[i], ref this.onSceneGUITasks);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
 		private void AddTasksOfType(Task task, Type type, ref List<Task> taskList)
 		{

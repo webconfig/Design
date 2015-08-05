@@ -27,10 +27,6 @@ namespace BehaviorDesigner.Editor
 			newBehaviorSource.Owner.ClearUnityObjects();
 			int num = 0;
 			Dictionary<string, object> dictionary = new Dictionary<string, object>();
-			if (origBehaviorSource.EntryTask != null)
-            {//序列化根节点
-				dictionary.Add("EntryTask", SerializeJSON.SerializeTask(origBehaviorSource.EntryTask, newBehaviorSource.Owner, ref num));
-			}
 			if (origBehaviorSource.RootTask != null)
             {//序列化根节点
 				dictionary.Add("RootTask", SerializeJSON.SerializeTask(origBehaviorSource.RootTask, newBehaviorSource.Owner, ref num));
@@ -54,8 +50,40 @@ namespace BehaviorDesigner.Editor
 				dictionary.Add("Variables", array2);
 			}
 			dictionary.Add("TaskCount", num);
-			return Json.Serialize(dictionary);
-		}
+			string str= Json.Serialize(dictionary);
+            //Debug.Log(str);
+            return str;
+            /*
+{
+  "RootTask":
+          {
+            "ObjectType":"BehaviorDesigner.Runtime.Tasks.EntryTask",
+            "NodeData":
+                       {
+                          "Position":"(391.0, 30.0)",
+                          "FriendlyName":"Entry"
+                       },
+            "ID":0,
+            "Instant":true,
+            "Children":
+                        [
+                           {
+                             "ObjectType":"BehaviorDesigner.Runtime.Tasks.Wait",
+                             "NodeData":
+                                          {
+                                              "Position":"(391.0, 150.0)",
+                                              "FriendlyName":"Wait"
+                                          },
+                              "ID":1,
+                              "Instant":true,
+                              "waitTime":1
+                           }
+                       ]
+         },
+ "TaskCount":2
+}
+             */
+        }
 
         /// <summary>
         /// 序列化任务

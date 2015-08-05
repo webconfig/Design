@@ -184,7 +184,8 @@ namespace BehaviorDesigner.Runtime
 				task.ID = 0;
 				task.Owner = behavior;
 				task.NodeData = new NodeData();
-				behavior.GetBehaviorSource().EntryTask = task;
+				//behavior.GetBehaviorSource().EntryTask = task;
+                behavior.GetBehaviorSource().RootTask=task;
 				BehaviorReference behaviorReference = ScriptableObject.CreateInstance("BehaviorTreeReference") as BehaviorReference;
 				behaviorReference.ID = 1;
 				behaviorReference.Owner = behavior;

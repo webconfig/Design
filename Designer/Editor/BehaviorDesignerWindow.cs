@@ -95,7 +95,7 @@ namespace BehaviorDesigner.Editor
 
 		private VariableInspector mVariableInspector;
         /// <summary>
-        /// 当前选中的节点
+        /// 当前行为树依附的场景对象
         /// </summary>
 		[SerializeField]
 		private UnityEngine.Object mActiveObject;
@@ -103,7 +103,9 @@ namespace BehaviorDesigner.Editor
 		private UnityEngine.Object mPrevActiveObject;
 
 		private BehaviorSource mActiveBehaviorSource;
-
+        /// <summary>
+        /// 当前行为树ID
+        /// </summary>
 		private int mActiveBehaviorID = -1;
         /// <summary>
         /// 管理器
@@ -111,7 +113,9 @@ namespace BehaviorDesigner.Editor
 		private BehaviorManager mBehaviorManager;
 
 		private bool mLockActiveGameObject;
-
+        /// <summary>
+        /// 属性窗口显示的行为树数据
+        /// </summary>
 		private BehaviorSource mInspectorBehaviorSourceLoad;
 
 		private List<TaskSerializer> mCopiedTasks;
@@ -174,10 +178,11 @@ namespace BehaviorDesigner.Editor
                 EditorWindow.FocusWindowIfItsOpen<UpdateTool>();
             }
 		}
-
+        /// <summary>
+        /// 当窗口获得焦点时调用一次
+        /// </summary>
 		public void OnFocus()
 		{
-            //Debug.Log("当窗口获得焦点时调用一次");
             BehaviorDesignerWindow.instance = this;
             base.wantsMouseMove = true;
             this.init();
@@ -198,11 +203,17 @@ namespace BehaviorDesigner.Editor
 			this.UpdateGraphStatus();
 		}
 
+        /// <summary>
+        /// 系统变更当前窗口
+        /// </summary>
 		public void OnProjectWindowChange()
 		{
 			this.ReloadPreviousBehavior();
 		}
 
+        /// <summary>
+        /// 重新加载行为树设计界面
+        /// </summary>
 		private void ReloadPreviousBehavior()
 		{
 			if (this.mActiveObject != null)
@@ -225,37 +236,39 @@ namespace BehaviorDesigner.Editor
 						this.LoadBehavior(components[num].GetBehaviorSource(), true, false, false, false);
 						return;
 					}
+
 					if (components.Count<Behavior>() > 0)
-					{
+					{//没有，默认展示第一个
 						this.LoadBehavior(components[0].GetBehaviorSource(), true, false, false, false);
 						return;
 					}
+
 					if (this.mGraphDesigner != null)
-					{
+					{//没有设计的，亲空
 						this.ClearGraph();
 						return;
 					}
 				}
-				else
-				{
-					if (this.mActiveObject as BehaviorDesigner.Runtime.ExternalBehavior)
-					{
-						BehaviorDesigner.Runtime.ExternalBehavior externalBehavior = this.mActiveObject as BehaviorDesigner.Runtime.ExternalBehavior;
-						BehaviorSource behaviorSource = externalBehavior.BehaviorSource;
-						if (externalBehavior.BehaviorSource.Owner == null)
-						{
-							externalBehavior.BehaviorSource.Owner = externalBehavior;
-						}
-						this.LoadBehavior(behaviorSource, true, false, false, false);
-						return;
-					}
-					if (this.mGraphDesigner != null)
-					{
-						this.mActiveObject = null;
-						this.ClearGraph();
-						return;
-					}
-				}
+                //else
+                //{
+                //    if (this.mActiveObject as BehaviorDesigner.Runtime.ExternalBehavior)
+                //    {
+                //        BehaviorDesigner.Runtime.ExternalBehavior externalBehavior = this.mActiveObject as BehaviorDesigner.Runtime.ExternalBehavior;
+                //        BehaviorSource behaviorSource = externalBehavior.BehaviorSource;
+                //        if (externalBehavior.BehaviorSource.Owner == null)
+                //        {
+                //            externalBehavior.BehaviorSource.Owner = externalBehavior;
+                //        }
+                //        this.LoadBehavior(behaviorSource, true, false, false, false);
+                //        return;
+                //    }
+                //    if (this.mGraphDesigner != null)
+                //    {
+                //        this.mActiveObject = null;
+                //        this.ClearGraph();
+                //        return;
+                //    }
+                //}
 			}
 			else if (this.mGraphDesigner != null)
 			{
@@ -281,7 +294,7 @@ namespace BehaviorDesigner.Editor
 				{
 					if (flag || this.mInspectorBehaviorSourceLoad != null)
 					{
-						if (this.mInspectorBehaviorSourceLoad != null && this.mInspectorBehaviorSourceLoad.EntryTask != null)
+						if (this.mInspectorBehaviorSourceLoad != null && this.mInspectorBehaviorSourceLoad.RootTask != null)
 						{
 							behaviorSource = this.mInspectorBehaviorSourceLoad;
 							this.mInspectorBehaviorSourceLoad = null;
@@ -398,7 +411,7 @@ namespace BehaviorDesigner.Editor
 			{
 				this.mGraphStatus = "Add a Behavior Tree Component";
 			}
-			else if (!this.mGraphDesigner.hasEntryNode())
+			else if (!this.mGraphDesigner.hasRootNode())
 			{
 				this.mGraphStatus = "Add a Task";
 			}
@@ -475,7 +488,7 @@ namespace BehaviorDesigner.Editor
 					this.mRightClickMenu.AddDisabledItem(new GUIContent("Paste Tasks"));
 				}
 			}
-			if (clickedNode != null && !clickedNode.IsEntryDisplay)
+			if (clickedNode != null && !clickedNode.IsRootDisplay)
 			{
 				if (this.mGraphDesigner.SelectedNodes.Count == 1)
 				{
@@ -502,7 +515,7 @@ namespace BehaviorDesigner.Editor
 			}
 			if (!EditorApplication.isPlaying && this.mActiveObject as GameObject != null)
 			{
-				if (clickedNode != null && !clickedNode.IsEntryDisplay)
+				if (clickedNode != null && !clickedNode.IsRootDisplay)
 				{
 					this.mRightClickMenu.AddSeparator("");
 				}
@@ -891,7 +904,7 @@ namespace BehaviorDesigner.Editor
 			}
 			else if (this.mBehaviorToolbarSelection == 3)
 			{//显示选择的行为书节点的属性
-				if (this.mGraphDesigner.SelectedNodes.Count == 1 && !this.mGraphDesigner.SelectedNodes[0].IsEntryDisplay)
+				if (this.mGraphDesigner.SelectedNodes.Count == 1 && !this.mGraphDesigner.SelectedNodes[0].IsRootDisplay)
 				{
 					Task task = this.mGraphDesigner.SelectedNodes[0].Task;
 					if (this.mNodeDesignerTaskMap != null && this.mNodeDesignerTaskMap.Count > 0)
@@ -1034,7 +1047,7 @@ namespace BehaviorDesigner.Editor
 			{
 				return;
 			}
-			if (this.mActiveObject as GameObject != null && (this.mActiveBehaviorSource.EntryTask == null || (this.mActiveBehaviorSource.EntryTask != null && EditorUtility.DisplayDialog("Remove Behavior Tree", "Are you sure you want to remove this behavior tree?", "Yes", "No"))))
+            if (this.mActiveObject as GameObject != null && (this.mActiveBehaviorSource.RootTask == null || (this.mActiveBehaviorSource.RootTask != null && EditorUtility.DisplayDialog("Remove Behavior Tree", "Are you sure you want to remove this behavior tree?", "Yes", "No"))))
 			{
 				GameObject gameObject = this.mActiveObject as GameObject;
 				int num = this.indexForBehavior(this.mActiveBehaviorSource.Owner);
@@ -1327,7 +1340,7 @@ namespace BehaviorDesigner.Editor
 			{
 				this.mGraphDesigner.clearHover();
 			}
-			if (nodeDesigner && !nodeDesigner.IsEntryDisplay)
+			if (nodeDesigner && !nodeDesigner.IsRootDisplay)
 			{
 				this.mGraphDesigner.hover(nodeDesigner);
 			}
@@ -1760,6 +1773,9 @@ namespace BehaviorDesigner.Editor
 			this.saveBehavior();
 		}
 
+        /// <summary>
+        /// 删除节点
+        /// </summary>
 		private void deleteNodes()
 		{
 			this.mGraphDesigner.delete(this.mActiveBehaviorSource);
@@ -1838,7 +1854,7 @@ namespace BehaviorDesigner.Editor
 			if (!AssetDatabase.GetAssetPath(this.mActiveObject).Equals(""))
 			{
 				this.mActiveBehaviorSource.Variables = null;
-				this.mActiveBehaviorSource.EntryTask = null;
+                //this.mActiveBehaviorSource.EntryTask = null;
 				this.mActiveBehaviorSource.RootTask = null;
 				this.mActiveBehaviorSource.DetachedTasks = null;
 				this.LoadBehavior(this.mActiveBehaviorSource, true, false, false);
@@ -1913,24 +1929,32 @@ namespace BehaviorDesigner.Editor
 		{
 			this.LoadBehavior(behaviorSource, loadPrevBehavior, firstLoad, reposition, false);
 		}
-
+        /// <summary>
+        /// 加载行为树
+        /// </summary>
+        /// <param name="behaviorSource"></param>
+        /// <param name="loadPrevBehavior"></param>
+        /// <param name="firstLoad"></param>
+        /// <param name="reposition"></param>
+        /// <param name="inspectorLoad"></param>
 		public void LoadBehavior(BehaviorSource behaviorSource, bool loadPrevBehavior, bool firstLoad, bool reposition, bool inspectorLoad)
 		{
-
-            //Debug.Log("111111111111111111111111111");
 			if (!firstLoad && !this.mSizesInitialized && inspectorLoad)
 			{
-				this.mInspectorBehaviorSourceLoad = behaviorSource;
+				this.mInspectorBehaviorSourceLoad = behaviorSource;//给属性窗口显示的行为树赋值
 				return;
 			}
 			this.disableReferenceTasks();
-            //Debug.Log("22222222");
-			this.mActiveBehaviorSource = behaviorSource;
+
+			this.mActiveBehaviorSource = behaviorSource;//给当前行为树赋值
+
 			if (this.mActiveBehaviorSource.BehaviorID == -1)
-			{
+			{//给行为树数据ID赋值
 				this.mActiveBehaviorSource.BehaviorID = this.mActiveBehaviorSource.Owner.GetInstanceID();
 			}
 			this.mActiveBehaviorID = this.mActiveBehaviorSource.BehaviorID;
+
+
 			this.mPrevActiveObject = Selection.activeObject;
 			if (EditorApplication.isPlaying && this.mActiveBehaviorSource != null && this.mBehaviorManager != null && this.mActiveBehaviorSource.Owner as Behavior != null)
 			{
@@ -1938,18 +1962,20 @@ namespace BehaviorDesigner.Editor
 			}
 			Vector2 vector = new Vector2(this.mGraphRect.width / (2f * this.mGraphZoom), 150f);
 			vector -= this.mGraphOffset;
-			if (this.mGraphDesigner.Load(this.mActiveBehaviorSource, loadPrevBehavior, vector) && reposition && this.mGraphDesigner.hasEntryNode())
+
+            //设计器加载数据
+            if (this.mGraphDesigner.Load(this.mActiveBehaviorSource, loadPrevBehavior, vector) && reposition && this.mGraphDesigner.hasRootNode())
 			{
-				Vector2 vector2 = this.mGraphDesigner.entryNodePosition();
+				Vector2 vector2 = this.mGraphDesigner.rootNodePosition();
 				this.mGraphOffset = new Vector2(-vector2.x + this.mGraphRect.width / (2f * this.mGraphZoom) - 50f, -vector2.y + 50f);
 			}
+
 			if (EditorApplication.isPlaying && this.mActiveBehaviorSource != null)
 			{
 				this.mRightClickMenu = null;
 				this.mUpdateNodeTaskMap = true;
 				this.UpdateNodeTaskMap();
 			}
-            //Debug.Log("3333333333");
 			this.UpdateGraphStatus();
 			this.UpdateBreadcrumbMenus();
 			base.Repaint();
