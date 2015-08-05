@@ -400,6 +400,7 @@ namespace BehaviorDesigner.Editor
 				return false;
 			}
 			Rect rect = this.rectangle(offset, false);
+            //判断是否运行了节点
 			bool flag = (this.mTask.NodeData.PushTime != -1f && this.mTask.NodeData.PushTime >= this.mTask.NodeData.PopTime) ||
                         (this.isRootDisplay && this.outgoingNodeConnections.Count > 0 && this.outgoingNodeConnections[0].DestinationNodeDesigner.Task.NodeData.PushTime != -1f);
 			bool flag2 = this.mIdentifyUpdateCount != -1;

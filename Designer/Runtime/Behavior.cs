@@ -214,8 +214,8 @@ namespace BehaviorDesigner.Runtime
 			this.mBehaviorSource.CheckForJSONSerialization(false);
 			if (this.mBehaviorSource.RootTask != null || this.externalBehavior != null)
 			{
-				Behavior.CreateBehaviorManager();
-				BehaviorManager.instance.enableBehavior(this);
+				Behavior.CreateBehaviorManager();//创建行为树管理类
+				BehaviorManager.instance.enableBehavior(this);//运行行为树
 			}
 		}
 
@@ -404,6 +404,10 @@ namespace BehaviorDesigner.Runtime
 			return this.mBehaviorSource.ToString();
 		}
 
+        /// <summary>
+        /// 创建行为树管理类
+        /// </summary>
+        /// <returns></returns>
 		public static BehaviorManager CreateBehaviorManager()
 		{
 			if (BehaviorManager.instance == null)

@@ -756,113 +756,12 @@ namespace BehaviorDesigner.Runtime
 			}
 		}
 
-		private TaskStatus runTask(BehaviorManager.BehaviorTree behaviorTree, int taskIndex, int stackIndex, TaskStatus previousStatus)
-		{
-			Task task = behaviorTree.taskList[taskIndex];
-			if (task == null)
-			{
-				return previousStatus;
-			}
-			if (behaviorTree.taskList[taskIndex].NodeData.Disabled)
-			{
-				if (behaviorTree.behavior.logTaskChanges)
-				{
-					MonoBehaviour.print(string.Format("{0}: {1}: Skip task {2} (index {3}) at stack index {4} (task disabled)", new object[]
-					{
-						this.roundedTime(),
-						behaviorTree.behavior.ToString(),
-						behaviorTree.taskList[taskIndex].GetType(),
-						taskIndex,
-						stackIndex
-					}));
-				}
-				if (behaviorTree.parentIndex[taskIndex] != -1)
-				{
-					ParentTask parentTask = behaviorTree.taskList[behaviorTree.parentIndex[taskIndex]] as ParentTask;
-					if (!parentTask.CanRunParallelChildren())
-					{
-						parentTask.OnChildExecuted(TaskStatus.Success);
-					}
-					else
-					{
-						parentTask.OnChildExecuted(behaviorTree.relativeChildIndex[taskIndex], TaskStatus.Success);
-					}
-				}
-				return TaskStatus.Success;
-			}
-			TaskStatus taskStatus = previousStatus;
-			if (!task.IsInstant && (behaviorTree.nonInstantTaskStatus[stackIndex] == TaskStatus.Failure || behaviorTree.nonInstantTaskStatus[stackIndex] == TaskStatus.Success))
-			{
-				taskStatus = behaviorTree.nonInstantTaskStatus[stackIndex];
-				this.popTask(behaviorTree, taskIndex, stackIndex, ref taskStatus, true);
-				return taskStatus;
-			}
-			this.pushTask(behaviorTree, taskIndex, stackIndex);
-			if (this.atBreakpoint)
-			{
-				return TaskStatus.Running;
-			}
-			if (task is ParentTask)
-			{
-				ParentTask parentTask2 = task as ParentTask;
-				if (!parentTask2.CanRunParallelChildren() || parentTask2.OverrideStatus(TaskStatus.Running) != TaskStatus.Running)
-				{
-					int num = 0;
-					TaskStatus taskStatus2 = TaskStatus.Inactive;
-					int num2 = stackIndex;
-					int num3 = -1;
-					while (parentTask2.CanExecute() && (taskStatus2 != TaskStatus.Running || parentTask2.CanRunParallelChildren()))
-					{
-						List<int> list = behaviorTree.childrenIndex[taskIndex];
-						int num4 = parentTask2.CurrentChildIndex();
-						if ((num4 == num3 && taskStatus != TaskStatus.Running) || !this.isBehaviorEnabled(behaviorTree.behavior))
-						{
-							taskStatus = TaskStatus.Running;
-							break;
-						}
-						num3 = num4;
-						if (parentTask2.CanRunParallelChildren())
-						{
-							behaviorTree.activeStack.Add(new Stack<int>());
-							behaviorTree.interruptionIndex.Add(-1);
-							behaviorTree.nonInstantTaskStatus.Add(TaskStatus.Inactive);
-							stackIndex = behaviorTree.activeStack.Count - 1;
-							parentTask2.OnChildRunning(num4);
-						}
-						else
-						{
-							parentTask2.OnChildRunning();
-						}
-						taskStatus2 = (taskStatus = this.runTask(behaviorTree, list[num4], stackIndex, taskStatus));
-						if (++num > behaviorTree.taskList.Count)
-						{
-							Debug.LogError(string.Format("Error: Every task within Behavior \"{0}\" has been called and no taks is running. Disabling Behavior to prevent infinite loop.", behaviorTree.behavior));
-							this.disableBehavior(behaviorTree.behavior);
-							break;
-						}
-					}
-					stackIndex = num2;
-				}
-				taskStatus = parentTask2.OverrideStatus(taskStatus);
-			}
-			else
-			{
-				taskStatus = task.OnUpdate();
-			}
-			if (taskStatus != TaskStatus.Running)
-			{
-				if (task.IsInstant)
-				{
-					this.popTask(behaviorTree, taskIndex, stackIndex, ref taskStatus, true);
-				}
-				else
-				{
-					behaviorTree.nonInstantTaskStatus[stackIndex] = taskStatus;
-				}
-			}
-			return taskStatus;
-		}
-
+        /// <summary>
+        /// 添加任务
+        /// </summary>
+        /// <param name="behaviorTree"></param>
+        /// <param name="taskIndex"></param>
+        /// <param name="stackIndex"></param>
 		private void pushTask(BehaviorManager.BehaviorTree behaviorTree, int taskIndex, int stackIndex)
 		{
 			if (!this.isBehaviorEnabled(behaviorTree.behavior))
@@ -886,7 +785,7 @@ namespace BehaviorDesigner.Runtime
 						behaviorTree.originalTaskList[behaviorTree.originalIndex[taskIndex]].NodeData.PushTime = Time.realtimeSinceStartup;
 					}
 				}
-				behaviorTree.taskList[taskIndex].NodeData.PushTime = Time.realtimeSinceStartup;
+				behaviorTree.taskList[taskIndex].NodeData.PushTime = Time.realtimeSinceStartup;//添加任务时间
 				this.setInactiveExecutionStatus(behaviorTree, taskIndex);
 				if (behaviorTree.taskList[taskIndex].NodeData.IsBreakpoint)
 				{
@@ -907,9 +806,128 @@ namespace BehaviorDesigner.Runtime
 						stackIndex
 					}));
 				}
-				behaviorTree.taskList[taskIndex].OnStart();
+				behaviorTree.taskList[taskIndex].OnStart();//任务开始运行
 			}
 		}
+
+
+        /// <summary>
+        /// 任务运行
+        /// </summary>
+        /// <param name="behaviorTree"></param>
+        /// <param name="taskIndex"></param>
+        /// <param name="stackIndex"></param>
+        /// <param name="previousStatus"></param>
+        /// <returns></returns>
+        private TaskStatus runTask(BehaviorManager.BehaviorTree behaviorTree, int taskIndex, int stackIndex, TaskStatus previousStatus)
+        {
+            Task task = behaviorTree.taskList[taskIndex];
+            if (task == null)
+            {
+                return previousStatus;
+            }
+            if (behaviorTree.taskList[taskIndex].NodeData.Disabled)
+            {
+                if (behaviorTree.behavior.logTaskChanges)
+                {
+                    MonoBehaviour.print(string.Format("{0}: {1}: Skip task {2} (index {3}) at stack index {4} (task disabled)", new object[]
+					{
+						this.roundedTime(),
+						behaviorTree.behavior.ToString(),
+						behaviorTree.taskList[taskIndex].GetType(),
+						taskIndex,
+						stackIndex
+					}));
+                }
+                if (behaviorTree.parentIndex[taskIndex] != -1)
+                {
+                    ParentTask parentTask = behaviorTree.taskList[behaviorTree.parentIndex[taskIndex]] as ParentTask;
+                    if (!parentTask.CanRunParallelChildren())
+                    {
+                        parentTask.OnChildExecuted(TaskStatus.Success);
+                    }
+                    else
+                    {
+                        parentTask.OnChildExecuted(behaviorTree.relativeChildIndex[taskIndex], TaskStatus.Success);
+                    }
+                }
+                return TaskStatus.Success;
+            }
+            TaskStatus taskStatus = previousStatus;
+            if (!task.IsInstant && (behaviorTree.nonInstantTaskStatus[stackIndex] == TaskStatus.Failure || behaviorTree.nonInstantTaskStatus[stackIndex] == TaskStatus.Success))
+            {
+                taskStatus = behaviorTree.nonInstantTaskStatus[stackIndex];
+                this.popTask(behaviorTree, taskIndex, stackIndex, ref taskStatus, true);
+                return taskStatus;
+            }
+            this.pushTask(behaviorTree, taskIndex, stackIndex);
+            if (this.atBreakpoint)
+            {
+                return TaskStatus.Running;
+            }
+            if (task is ParentTask)
+            {
+                ParentTask parentTask2 = task as ParentTask;
+                if (!parentTask2.CanRunParallelChildren() || parentTask2.OverrideStatus(TaskStatus.Running) != TaskStatus.Running)
+                {
+                    int num = 0;
+                    TaskStatus taskStatus2 = TaskStatus.Inactive;
+                    int num2 = stackIndex;
+                    int num3 = -1;
+                    while (parentTask2.CanExecute() && (taskStatus2 != TaskStatus.Running || parentTask2.CanRunParallelChildren()))
+                    {
+                        List<int> list = behaviorTree.childrenIndex[taskIndex];
+                        int num4 = parentTask2.CurrentChildIndex();
+                        if ((num4 == num3 && taskStatus != TaskStatus.Running) || !this.isBehaviorEnabled(behaviorTree.behavior))
+                        {
+                            taskStatus = TaskStatus.Running;
+                            break;
+                        }
+                        num3 = num4;
+                        if (parentTask2.CanRunParallelChildren())
+                        {
+                            behaviorTree.activeStack.Add(new Stack<int>());
+                            behaviorTree.interruptionIndex.Add(-1);
+                            behaviorTree.nonInstantTaskStatus.Add(TaskStatus.Inactive);
+                            stackIndex = behaviorTree.activeStack.Count - 1;
+                            parentTask2.OnChildRunning(num4);
+                        }
+                        else
+                        {
+                            parentTask2.OnChildRunning();
+                        }
+                        taskStatus2 = (taskStatus = this.runTask(behaviorTree, list[num4], stackIndex, taskStatus));
+                        if (++num > behaviorTree.taskList.Count)
+                        {
+                            Debug.LogError(string.Format("Error: Every task within Behavior \"{0}\" has been called and no taks is running. Disabling Behavior to prevent infinite loop.", behaviorTree.behavior));
+                            this.disableBehavior(behaviorTree.behavior);
+                            break;
+                        }
+                    }
+                    stackIndex = num2;
+                }
+                taskStatus = parentTask2.OverrideStatus(taskStatus);
+            }
+            else
+            {
+                taskStatus = task.OnUpdate();//任务更新
+            }
+            if (taskStatus != TaskStatus.Running)
+            {
+                if (task.IsInstant)
+                {
+                    this.popTask(behaviorTree, taskIndex, stackIndex, ref taskStatus, true);
+                }
+                else
+                {
+                    behaviorTree.nonInstantTaskStatus[stackIndex] = taskStatus;
+                }
+            }
+            return taskStatus;
+        }
+
+
+
 
 		private void setInactiveExecutionStatus(BehaviorManager.BehaviorTree behaviorTree, int taskIndex)
 		{
