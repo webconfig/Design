@@ -184,7 +184,7 @@ namespace BehaviorDesigner.Editor
 			Task.ID = id++;
 			Task.NodeData.NodeDesigner = this;
 			Task.NodeData.initWatchedFields(Task);
-            Task.hideFlags = (!AssetDatabase.GetAssetPath(task.Owner).Equals("")) ? HideFlags.DontSave : HideFlags.None;
+            //Task.hideFlags = (!AssetDatabase.GetAssetPath(task.Owner).Equals("")) ? HideFlags.DontSave : HideFlags.None;
 			this.loadTaskIcon();
 			this.init();
             //if (this.isParent)

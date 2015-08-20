@@ -9,8 +9,8 @@ namespace BehaviorDesigner.Runtime.Tasks
 	{
         [System.NonSerialized]
         public DesignerNodeData NodeData;
-        [System.NonSerialized]
-        public Behavior Owner;
+        //[System.NonSerialized]
+        //public Behavior Owner;
         [System.NonSerialized]
         public int ID;
         [System.NonSerialized]

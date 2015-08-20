@@ -764,7 +764,11 @@ namespace BehaviorDesigner.Editor
         /// <returns></returns>
 		public Vector2 rootNodePosition()
 		{
-            return DetachedNodes[0].Task.NodeData.Position;
+            if (DetachedNodes != null && DetachedNodes.Count > 0)
+            {
+                return DetachedNodes[0].Task.NodeData.Position;
+            }
+            return Vector2.zero;
            // return RootNode.Task.NodeData.Position;
 		}
 
@@ -794,23 +798,7 @@ namespace BehaviorDesigner.Editor
             //}
 		}
 
-		public void clear(bool saveSelectedNodes)
-		{
-			if (saveSelectedNodes)
-			{
-				this.mPrevNodeSelectedID = this.mNodeSelectedID.ToArray();
-			}
-			else
-			{
-				this.mPrevNodeSelectedID = null;
-			}
-			this.mNodeSelectedID.Clear();
-			SelectedNodes.Clear();
-			SelectedNodeConnections.Clear();
-            //this.mEntryTask = null;
-            //RootNode = null;
-			DetachedNodes = new List<NodeDesigner>();
-		}
+		
 
 
         #region 绘制节点和连线
@@ -1048,13 +1036,9 @@ namespace BehaviorDesigner.Editor
             //}
             return true;
         }
-        public bool Load(BehaviorSource data)
+        public void Load(BehaviorSource data)
         {
-            if (data.DetachedTasks == null)
-            {
-                clear(false);
-                return false ;
-            }
+            clear();
             DetachedNodes.Clear();
             List<Task> list=data.GetTasks();
             if (list != null)
@@ -1067,8 +1051,16 @@ namespace BehaviorDesigner.Editor
                     loadNodeSelection(nodeDesigner);
                 }
             }
-            return true;
+        }
+        public void clear()
+        {
 
+            this.mPrevNodeSelectedID = null;
+
+            this.mNodeSelectedID.Clear();
+            SelectedNodes.Clear();
+            SelectedNodeConnections.Clear();
+            DetachedNodes = new List<NodeDesigner>();
         }
         #endregion
 

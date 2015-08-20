@@ -1466,7 +1466,7 @@ namespace BehaviorDesigner.Editor
 
 		public void ClearGraph()
 		{
-			this.mGraphDesigner.clear(true);
+			this.mGraphDesigner.clear();
 			this.mActiveBehaviorSource = null;
 			this.UpdateGraphStatus();
 			this.UpdateSelectDatas();
@@ -1567,28 +1567,13 @@ namespace BehaviorDesigner.Editor
                 GenericMenu menu = new GenericMenu();
                 for (int j = 0; j < BehaviorSources.Count; j++)
                 {
-                    menu.AddItem(new GUIContent(BehaviorSources[j].behaviorName), false, (obj) => LoadDataSource(obj as BehaviorSource),BehaviorSources[j]);
+                    menu.AddItem(new GUIContent(BehaviorSources[j].behaviorName), false, (obj) => { SaveCurrent(); LoadDataSource(obj as BehaviorSource); }, BehaviorSources[j]);
                 }
                 menu.ShowAsContext();
             }
-
-
-            //if (GUILayout.Button("-", EditorStyles.toolbarButton, new GUILayoutOption[]
-            //{
-            //    GUILayout.Width(22f)
-            //}))
-            //{
-            //    if (this.mActiveBehaviorSource != null)
-            //    {
-            //        this.removeBehavior();
-            //    }
-            //    else
-            //    {
-            //        EditorUtility.DisplayDialog("Unable to Remove Behavior Tree", "No behavior tree selected.", "OK");
-            //    }
-            //}
             if (GUILayout.Button("New", EditorStyles.toolbarButton, new GUILayoutOption[] { GUILayout.Width(42f) }))
             {//保存按钮
+                SaveCurrent();
                 NewBehavior();
             }
             if (GUILayout.Button("Load", EditorStyles.toolbarButton, new GUILayoutOption[] { GUILayout.Width(42f) }))
@@ -1606,15 +1591,16 @@ namespace BehaviorDesigner.Editor
                     EditorUtility.DisplayDialog("Unable to Save Behavior Tree", "Select a behavior tree from within the scene.", "OK");
                 }
             }
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Preferences", this.mShowPrefPane ? BehaviorDesignerUtility.ToolbarButtonSelectionGUIStyle : EditorStyles.toolbarButton, new GUILayoutOption[]
-			{
-				GUILayout.Width(80f)
-			}))
-            {
-                this.mShowPrefPane = !this.mShowPrefPane;
-            }
-            GUILayout.EndVertical();
+            //GUILayout.FlexibleSpace();
+            //if (GUILayout.Button("Preferences", this.mShowPrefPane ? BehaviorDesignerUtility.ToolbarButtonSelectionGUIStyle : EditorStyles.toolbarButton, new GUILayoutOption[]
+            //{
+            //    GUILayout.Width(80f)
+            //}))
+            //{
+            //    this.mShowPrefPane = !this.mShowPrefPane;
+            //}
+            GUILayout.EndHorizontal();
+            //GUILayout.EndVertical();
             GUILayout.EndArea();
         }
 
@@ -1912,10 +1898,10 @@ namespace BehaviorDesigner.Editor
 
             for (int i = 0; i < BehaviorSources.Count;i++)
             {
-                SerializeXml.Serialize(this.mActiveBehaviorSource, out data, out data_ui);
+                SerializeXml.Serialize(BehaviorSources[i], out data, out data_ui);
                 UIs += data_ui;
             }
-            UIs = "<skills>" + data_ui + "</skills>";
+            UIs = "<skills>" + UIs + "</skills>";
                 
             if (string.IsNullOrEmpty(BehaviorDesignerWindow.XmlPath))
             {
@@ -1924,7 +1910,7 @@ namespace BehaviorDesigner.Editor
             }
             else
             {
-                Debug.Log(UIs);
+                //Debug.Log(UIs);
                 FileStream fs = new FileStream(BehaviorDesignerWindow.XmlPath, FileMode.Create, FileAccess.Write);
                 fs.SetLength(0);
                 StreamWriter sw = new StreamWriter(fs, Encoding.UTF8);
@@ -2105,18 +2091,24 @@ namespace BehaviorDesigner.Editor
         {
             OpenRead();
         }
-
+        private void SaveCurrent()
+        {
+            if (mActiveBehaviorSource != null)
+            {
+                this.mGraphDesigner.save(this.mActiveBehaviorSource);//把设计器内的数据保存到数据源里面去
+            }
+        }
 
         private void LoadDataSource(BehaviorSource behaviorSource)
         {
             this.mActiveBehaviorSource = behaviorSource;//给当前行为树赋值
 
             //设计器加载数据
-            if (this.mGraphDesigner.Load(this.mActiveBehaviorSource))
-            {
-                Vector2 vector2 = this.mGraphDesigner.rootNodePosition();
-                this.mGraphOffset = new Vector2(-vector2.x + this.mGraphRect.width / (2f * this.mGraphZoom) - 50f, -vector2.y + 50f);
-            }
+            this.mGraphDesigner.Load(this.mActiveBehaviorSource);
+
+            Vector2 vector2 = this.mGraphDesigner.rootNodePosition();
+            this.mGraphOffset = new Vector2(-vector2.x + this.mGraphRect.width / (2f * this.mGraphZoom) - 50f, -vector2.y + 50f);
+
         }
 
         #endregion

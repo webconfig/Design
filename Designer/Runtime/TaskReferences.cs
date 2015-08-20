@@ -122,55 +122,55 @@ namespace BehaviorDesigner.Runtime
             return null;
         }
 
-		public static void CheckReferences(Behavior behavior, List<Task> taskList)
-		{
-			for (int i = 0; i < taskList.Count; i++)
-			{
-				TaskReferences.CheckReferences(behavior, taskList[i], taskList);
-			}
-		}
+        //public static void CheckReferences(Behavior behavior, List<Task> taskList)
+        //{
+        //    for (int i = 0; i < taskList.Count; i++)
+        //    {
+        //        TaskReferences.CheckReferences(behavior, taskList[i], taskList);
+        //    }
+        //}
 
-		private static void CheckReferences(Behavior behavior, Task task, List<Task> taskList)
-		{
-			FieldInfo[] fields = task.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			for (int i = 0; i < fields.Length; i++)
-			{
-				if (!fields[i].FieldType.IsArray && (fields[i].FieldType.Equals(typeof(Task)) || fields[i].FieldType.IsSubclassOf(typeof(Task))))
-				{
-					Task task2 = fields[i].GetValue(task) as Task;
-					if (task2 != null && !task2.Owner.Equals(behavior))
-					{
-						Task task3 = TaskReferences.FindReferencedTask(task2, taskList);
-						if (task3 != null)
-						{
-							fields[i].SetValue(task, task3);
-						}
-					}
-				}
-				else if (fields[i].FieldType.IsArray && (fields[i].FieldType.GetElementType().Equals(typeof(Task)) || fields[i].FieldType.GetElementType().IsSubclassOf(typeof(Task))))
-				{
-					Task[] array = fields[i].GetValue(task) as Task[];
-					if (array != null)
-					{
-						IList list = Activator.CreateInstance(typeof(List<>).MakeGenericType(new Type[]
-						{
-							fields[i].FieldType.GetElementType()
-						})) as IList;
-						for (int j = 0; j < array.Length; j++)
-						{
-							Task task4 = TaskReferences.FindReferencedTask(array[j], taskList);
-							if (task4 != null)
-							{
-								list.Add(task4);
-							}
-						}
-						Array array2 = Array.CreateInstance(fields[i].FieldType.GetElementType(), list.Count);
-						list.CopyTo(array2, 0);
-						fields[i].SetValue(task, array2);
-					}
-				}
-			}
-		}
+        //private static void CheckReferences(Behavior behavior, Task task, List<Task> taskList)
+        //{
+        //    FieldInfo[] fields = task.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        //    for (int i = 0; i < fields.Length; i++)
+        //    {
+        //        if (!fields[i].FieldType.IsArray && (fields[i].FieldType.Equals(typeof(Task)) || fields[i].FieldType.IsSubclassOf(typeof(Task))))
+        //        {
+        //            Task task2 = fields[i].GetValue(task) as Task;
+        //            if (task2 != null && !task2.Owner.Equals(behavior))
+        //            {
+        //                Task task3 = TaskReferences.FindReferencedTask(task2, taskList);
+        //                if (task3 != null)
+        //                {
+        //                    fields[i].SetValue(task, task3);
+        //                }
+        //            }
+        //        }
+        //        else if (fields[i].FieldType.IsArray && (fields[i].FieldType.GetElementType().Equals(typeof(Task)) || fields[i].FieldType.GetElementType().IsSubclassOf(typeof(Task))))
+        //        {
+        //            Task[] array = fields[i].GetValue(task) as Task[];
+        //            if (array != null)
+        //            {
+        //                IList list = Activator.CreateInstance(typeof(List<>).MakeGenericType(new Type[]
+        //                {
+        //                    fields[i].FieldType.GetElementType()
+        //                })) as IList;
+        //                for (int j = 0; j < array.Length; j++)
+        //                {
+        //                    Task task4 = TaskReferences.FindReferencedTask(array[j], taskList);
+        //                    if (task4 != null)
+        //                    {
+        //                        list.Add(task4);
+        //                    }
+        //                }
+        //                Array array2 = Array.CreateInstance(fields[i].FieldType.GetElementType(), list.Count);
+        //                list.CopyTo(array2, 0);
+        //                fields[i].SetValue(task, array2);
+        //            }
+        //        }
+        //    }
+        //}
 
 		private static Task FindReferencedTask(Task referencedTask, List<Task> taskList)
 		{

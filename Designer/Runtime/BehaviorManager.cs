@@ -424,7 +424,7 @@ namespace BehaviorDesigner.Runtime
 			task2.ReferenceID = (task.ReferenceID = behaviorTree.taskList.Count);
 			task2.ID = task.ID;
 			task2.IsInstant = task.IsInstant;
-			task2.Owner = task.Owner;
+            //task2.Owner = task.Owner;
             task2.NodeData = new DesignerNodeData();
 			task2.NodeData.copyFrom(task.NodeData, task2);
 			return task2;
