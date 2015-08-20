@@ -47,11 +47,11 @@ namespace BehaviorDesigner.Runtime
             //    behaviorSource.EntryTask = DeserializeJSON.DeserializeTask(behaviorSource, dictionary3["EntryTask"] as Dictionary<string, object>, ref dictionary2, ref dictionary);
             //    result = true;
             //}
-			if (dictionary3.ContainsKey("RootTask"))
-			{
-				behaviorSource.RootTask = DeserializeJSON.DeserializeTask(behaviorSource, dictionary3["RootTask"] as Dictionary<string, object>, ref dictionary2, ref dictionary);
-				result = true;
-			}
+            //if (dictionary3.ContainsKey("RootTask"))
+            //{
+            //    behaviorSource.RootTask = DeserializeJSON.DeserializeTask(behaviorSource, dictionary3["RootTask"] as Dictionary<string, object>, ref dictionary2, ref dictionary);
+            //    result = true;
+            //}
 			if (dictionary3.ContainsKey("DetachedTasks"))
 			{
 				List<Task> list3 = new List<Task>();
@@ -90,86 +90,62 @@ namespace BehaviorDesigner.Runtime
 			return result;
 		}
 
-		private static Task DeserializeTask(BehaviorSource behaviorSource, Dictionary<string, object> dict, ref Dictionary<int, Task> IDtoTask, ref Dictionary<DeserializeJSON.TaskField, List<int>> taskIDs)
-		{
-			Task task = null;
-			try
-			{
-				Type type = Type.GetType(dict["ObjectType"] as string);
-				if (type == null)
-				{
-					type = Type.GetType(string.Format("{0}, Assembly-CSharp", dict["ObjectType"] as string));
-					if (type == null)
-					{
-						type = Type.GetType(string.Format("{0}, Assembly-CSharp-firstpass", dict["ObjectType"] as string));
-					}
-					if (type == null)
-					{
-						type = Type.GetType(string.Format("{0}, Assembly-UnityScript", dict["ObjectType"] as string));
-					}
-					if (type == null)
-					{
-						type = Type.GetType(string.Format("{0}, Assembly-UnityScript-firstpass", dict["ObjectType"] as string));
-					}
-				}
-				if (type == null)
-				{
-					if (dict.ContainsKey("Children"))
-					{
-						type = typeof(UnknownParentTask);
-					}
-					else
-					{
-						type = typeof(UnknownTask);
-					}
-				}
-				task = (ScriptableObject.CreateInstance(type) as Task);
-			}
-			catch (Exception)
-			{
-			}
-			if (task == null)
-			{
-				Debug.Log("Error: task is null of type " + dict["ObjectType"]);
-				return null;
-			}
+        private static Task DeserializeTask(BehaviorSource behaviorSource, Dictionary<string, object> dict, ref Dictionary<int, Task> IDtoTask, ref Dictionary<DeserializeJSON.TaskField, List<int>> taskIDs)
+        {
+            Task task = null;
+            try
+            {
+                Type type = Type.GetType(dict["ObjectType"] as string);
+                if (type == null)
+                {
+                    type = Type.GetType(string.Format("{0}, Assembly-CSharp", dict["ObjectType"] as string));
+                    if (type == null)
+                    {
+                        type = Type.GetType(string.Format("{0}, Assembly-CSharp-firstpass", dict["ObjectType"] as string));
+                    }
+                    if (type == null)
+                    {
+                        type = Type.GetType(string.Format("{0}, Assembly-UnityScript", dict["ObjectType"] as string));
+                    }
+                    if (type == null)
+                    {
+                        type = Type.GetType(string.Format("{0}, Assembly-UnityScript-firstpass", dict["ObjectType"] as string));
+                    }
+                }
+                task = (ScriptableObject.CreateInstance(type) as Task);
+            }
+            catch (Exception)
+            {
+            }
+            if (task == null)
+            {
+                Debug.Log("Error: task is null of type " + dict["ObjectType"]);
+                return null;
+            }
             task.hideFlags = HideFlags.HideAndDontSave;// 13;
-			task.ID = Convert.ToInt32(dict["ID"]);
-			if (dict.ContainsKey("Instant"))
-			{
-				task.IsInstant = (bool)Convert.ChangeType(dict["Instant"], typeof(bool));
-			}
-			IDtoTask.Add(task.ID, task);
-			task.Owner = (behaviorSource.Owner as Behavior);
-			task.NodeData = new NodeData();
-			task.NodeData.deserialize(dict["NodeData"] as Dictionary<string, object>, task);
-			if (task.GetType().Equals(typeof(UnknownTask)) || task.GetType().Equals(typeof(UnknownParentTask)))
-			{
-				if (!task.NodeData.FriendlyName.Contains("Unknown "))
-				{
-					task.NodeData.FriendlyName = string.Format("Unknown {0}", task.NodeData.FriendlyName);
-				}
-				if (!task.NodeData.Comment.Contains("Loaded from an unknown type. Was a task renamed or deleted?"))
-				{
-					task.NodeData.Comment = string.Format("Loaded from an unknown type. Was a task renamed or deleted?{0}", task.NodeData.Comment.Equals("") ? "" : string.Format("\0{0}", task.NodeData.Comment));
-				}
-			}
-			DeserializeJSON.DeserializeObject(task, task, dict, behaviorSource, ref taskIDs);
-			if (task.GetType().IsSubclassOf(typeof(ParentTask)) && dict.ContainsKey("Children"))
-			{
-				ParentTask parentTask = task as ParentTask;
-				if (parentTask != null)
-				{
-					foreach (Dictionary<string, object> dict2 in (dict["Children"] as IEnumerable))
-					{
-						Task child = DeserializeJSON.DeserializeTask(behaviorSource, dict2, ref IDtoTask, ref taskIDs);
-						int index = (parentTask.Children == null) ? 0 : parentTask.Children.Count;
-						parentTask.AddChild(child, index);
-					}
-				}
-			}
-			return task;
-		}
+            task.ID = Convert.ToInt32(dict["ID"]);
+            if (dict.ContainsKey("Instant"))
+            {
+                task.IsInstant = (bool)Convert.ChangeType(dict["Instant"], typeof(bool));
+            }
+            IDtoTask.Add(task.ID, task);
+            //task.Owner = (behaviorSource.Owner as Behavior);
+            task.NodeData = new DesignerNodeData();
+            task.NodeData.deserialize(dict["NodeData"] as Dictionary<string, object>, task);
+            DeserializeJSON.DeserializeObject(task, task, dict, behaviorSource, ref taskIDs);
+            if (dict.ContainsKey("Children"))
+            {
+
+                foreach (Dictionary<string, object> dict2 in (dict["Children"] as IEnumerable))
+                {
+                    Task child = DeserializeJSON.DeserializeTask(behaviorSource, dict2, ref IDtoTask, ref taskIDs);
+                    int index = (task.Children == null) ? 0 : task.Children.Count;
+                    task.AddChild(child, index);
+                }
+
+            }
+            return task;
+        }
 
 		private static SharedVariable DeserializeSharedVariable(Dictionary<string, object> dict, BehaviorSource behaviorSource)
 		{
@@ -242,7 +218,7 @@ namespace BehaviorDesigner.Runtime
 						object obj = dict["Value"];
 						if (!obj.GetType().Equals(typeof(string)))
 						{
-							sharedVariable.SetValue(behaviorSource.Owner.DeserializeUnityObject(Convert.ToInt32(obj)));
+                            //sharedVariable.SetValue(behaviorSource.Owner.DeserializeUnityObject(Convert.ToInt32(obj)));
 						}
 						break;
 					}
@@ -323,10 +299,10 @@ namespace BehaviorDesigner.Runtime
 			}
 			if (type.Equals(typeof(UnityEngine.Object)) || type.IsSubclassOf(typeof(UnityEngine.Object)))
 			{
-				if (!obj.GetType().Equals(typeof(string)))
-				{
-					return behaviorSource.Owner.DeserializeUnityObject(Convert.ToInt32(obj));
-				}
+                //if (!obj.GetType().Equals(typeof(string)))
+                //{
+                //    return behaviorSource.Owner.DeserializeUnityObject(Convert.ToInt32(obj));
+                //}
 				return null;
 			}
 			else

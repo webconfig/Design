@@ -11,18 +11,6 @@ namespace BehaviorDesigner.Editor
 	[Serializable]
 	public class GraphDesigner : ScriptableObject
 	{
-		private NodeDesigner mRootNode;
-
-		private List<NodeDesigner> mDetachedNodes = new List<NodeDesigner>();
-
-		private List<NodeDesigner> mSelectedNodes = new List<NodeDesigner>();
-
-		private NodeDesigner mHoverNode;
-
-		private NodeConnection mActiveNodeConnection;
-
-		private List<NodeConnection> mSelectedNodeConnections = new List<NodeConnection>();
-
 		[SerializeField]
 		private int mNextTaskID;
 
@@ -31,67 +19,22 @@ namespace BehaviorDesigner.Editor
 		[SerializeField]
 		private int[] mPrevNodeSelectedID;
 
-        /// <summary>
-        /// 根节点
-        /// </summary>
-		public NodeDesigner RootNode
-		{
-			get
-			{
-				return this.mRootNode;
-			}
-		}
+        ///// <summary>
+        ///// 根节点
+        ///// </summary>
+        //public NodeDesigner RootNode;
 
+        public List<NodeDesigner> DetachedNodes=new List<NodeDesigner>();
 
-		public List<NodeDesigner> DetachedNodes
-		{
-			get
-			{
-				return this.mDetachedNodes;
-			}
-		}
-
-		public List<NodeDesigner> SelectedNodes
-		{
-			get
-			{
-				return this.mSelectedNodes;
-			}
-		}
+        public List<NodeDesigner> SelectedNodes=new List<NodeDesigner>();
         /// <summary>
         /// 获取焦点的节点
         /// </summary>
-		public NodeDesigner HoverNode
-		{
-			get
-			{
-				return this.mHoverNode;
-			}
-			set
-			{
-				this.mHoverNode = value;
-			}
-		}
+        public NodeDesigner HoverNode;
 
-		public NodeConnection ActiveNodeConnection
-		{
-			get
-			{
-				return this.mActiveNodeConnection;
-			}
-			set
-			{
-				this.mActiveNodeConnection = value;
-			}
-		}
+        public NodeConnection ActiveNodeConnection;
 
-		public List<NodeConnection> SelectedNodeConnections
-		{
-			get
-			{
-				return this.mSelectedNodeConnections;
-			}
-		}
+        public List<NodeConnection> SelectedNodeConnections=new List<NodeConnection>();
 
 		public void OnEnable()
 		{
@@ -106,19 +49,21 @@ namespace BehaviorDesigner.Editor
             //}
             //bool result = this.mEntryTask.OnInspectorUpdate();
 
-            if (this.mRootNode == null) { return false; }
-            bool result = this.mRootNode.OnInspectorUpdate();
-			for (int i = 0; i < this.mDetachedNodes.Count; i++)
+            //if (RootNode == null) { return false; }
+            //bool result = RootNode.OnInspectorUpdate();
+
+
+            if (DetachedNodes == null || DetachedNodes.Count <= 0) { return false; }
+            bool result = false;
+			for (int i = 0; i < DetachedNodes.Count; i++)
 			{
-				if (this.mDetachedNodes[i].OnInspectorUpdate())
+				if (DetachedNodes[i].OnInspectorUpdate())
 				{
 					result = true;
 				}
 			}
 			return result;
 		}
-
-       
 
         /// <summary>
         /// 寻找范围内的节点
@@ -128,33 +73,33 @@ namespace BehaviorDesigner.Editor
         /// <returns></returns>
 		public NodeDesigner nodeAt(Vector2 point, Vector2 offset)
 		{
-			if (this.mRootNode == null)
+            if (DetachedNodes == null || DetachedNodes.Count <= 0)
 			{
 				return null;
 			}
-			for (int i = 0; i < this.mSelectedNodes.Count; i++)
+			for (int i = 0; i < SelectedNodes.Count; i++)
 			{
-				if (this.mSelectedNodes[i].contains(point, offset, false))
+				if (SelectedNodes[i].contains(point, offset, false))
 				{
-					return this.mSelectedNodes[i];
+					return SelectedNodes[i];
 				}
 			}
 			NodeDesigner result;
-			for (int j = this.mDetachedNodes.Count - 1; j > -1; j--)
+			for (int j = DetachedNodes.Count - 1; j > -1; j--)
 			{
-				if (this.mDetachedNodes[j] != null && (result = this.nodeChildrenAt(this.mDetachedNodes[j], point, offset)) != null)
+				if (DetachedNodes[j] != null && (result = this.nodeChildrenAt(DetachedNodes[j], point, offset)) != null)
 				{
 					return result;
 				}
 			}
-			if (this.mRootNode != null && (result = this.nodeChildrenAt(this.mRootNode, point, offset)) != null)
-			{
-				return result;
-			}
-            if (this.mRootNode.contains(point, offset, true))
-			{
-                return this.mRootNode;
-			}
+            //if (RootNode != null && (result = this.nodeChildrenAt(RootNode, point, offset)) != null)
+            //{
+            //    return result;
+            //}
+            //if (RootNode.contains(point, offset, true))
+            //{
+            //    return RootNode;
+            //}
 			return null;
 		}
 
@@ -164,9 +109,9 @@ namespace BehaviorDesigner.Editor
 			{
 				return nodeDesigner;
 			}
-			if (nodeDesigner.IsParent)
-			{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
+            //if (nodeDesigner.IsParent)
+            //{
+                Task parentTask = nodeDesigner.Task;
 				if (!parentTask.NodeData.Collapsed && parentTask.Children != null)
 				{
 					for (int i = 0; i < parentTask.Children.Count; i++)
@@ -178,20 +123,20 @@ namespace BehaviorDesigner.Editor
 						}
 					}
 				}
-			}
+            //}
 			return null;
 		}
 
 		public List<NodeDesigner> nodesAt(Rect rect, Vector2 offset)
 		{
 			List<NodeDesigner> list = new List<NodeDesigner>();
-			if (this.mRootNode != null)
+            //if (RootNode != null)
+            //{
+            //    this.nodesChildrenAt(RootNode, rect, offset, ref list);
+            //}
+			for (int i = 0; i < DetachedNodes.Count; i++)
 			{
-				this.nodesChildrenAt(this.mRootNode, rect, offset, ref list);
-			}
-			for (int i = 0; i < this.mDetachedNodes.Count; i++)
-			{
-				this.nodesChildrenAt(this.mDetachedNodes[i], rect, offset, ref list);
+				this.nodesChildrenAt(DetachedNodes[i], rect, offset, ref list);
 			}
 			if (list.Count <= 0)
 			{
@@ -206,9 +151,9 @@ namespace BehaviorDesigner.Editor
 			{
 				nodes.Add(nodeDesigner);
 			}
-			if (nodeDesigner.IsParent)
-			{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
+            //if (nodeDesigner.IsParent)
+            //{
+				Task parentTask = nodeDesigner.Task;
 				if (!parentTask.NodeData.Collapsed && parentTask.Children != null)
 				{
 					for (int i = 0; i < parentTask.Children.Count; i++)
@@ -219,12 +164,12 @@ namespace BehaviorDesigner.Editor
 						}
 					}
 				}
-			}
+            //}
 		}
 
 		public bool isSelected(NodeDesigner nodeDesigner)
 		{
-			return this.mSelectedNodes.Contains(nodeDesigner);
+			return SelectedNodes.Contains(nodeDesigner);
 		}
 
 		public void select(NodeDesigner nodeDesigner)
@@ -234,25 +179,25 @@ namespace BehaviorDesigner.Editor
 
 		public void select(NodeDesigner nodeDesigner, bool addHash)
 		{
-			if (this.mSelectedNodes.Count == 1)
+			if (SelectedNodes.Count == 1)
 			{
-				this.indicateReferencedTasks(this.mSelectedNodes[0].Task, false);
+				this.indicateReferencedTasks(SelectedNodes[0].Task, false);
 			}
-			this.mSelectedNodes.Add(nodeDesigner);
+			SelectedNodes.Add(nodeDesigner);
 			if (addHash)
 			{
 				this.mNodeSelectedID.Add(nodeDesigner.Task.ID);
 			}
 			nodeDesigner.select();
-			if (this.mSelectedNodes.Count == 1)
+			if (SelectedNodes.Count == 1)
 			{
-				this.indicateReferencedTasks(this.mSelectedNodes[0].Task, true);
+				this.indicateReferencedTasks(SelectedNodes[0].Task, true);
 			}
 		}
 
 		public void deselect(NodeDesigner nodeDesigner)
 		{
-			this.mSelectedNodes.Remove(nodeDesigner);
+			SelectedNodes.Remove(nodeDesigner);
 			this.mNodeSelectedID.Remove(nodeDesigner.Task.ID);
 			nodeDesigner.deselect();
 			this.indicateReferencedTasks(nodeDesigner.Task, false);
@@ -260,13 +205,13 @@ namespace BehaviorDesigner.Editor
 
 		public void deselectAllExcept(NodeDesigner nodeDesigner)
 		{
-			for (int i = this.mSelectedNodes.Count - 1; i >= 0; i--)
+			for (int i = SelectedNodes.Count - 1; i >= 0; i--)
 			{
-				if (!this.mSelectedNodes[i].Equals(nodeDesigner))
+				if (!SelectedNodes[i].Equals(nodeDesigner))
 				{
-					this.mSelectedNodes.RemoveAt(i);
+					SelectedNodes.RemoveAt(i);
 					this.mNodeSelectedID.RemoveAt(i);
-					this.mSelectedNodes[i].deselect();
+					SelectedNodes[i].deselect();
 				}
 			}
 			this.indicateReferencedTasks(nodeDesigner.Task, false);
@@ -274,25 +219,25 @@ namespace BehaviorDesigner.Editor
 
 		public void clearNodeSelection()
 		{
-			if (this.mSelectedNodes.Count == 1)
+			if (SelectedNodes.Count == 1)
 			{
-				this.indicateReferencedTasks(this.mSelectedNodes[0].Task, false);
+				this.indicateReferencedTasks(SelectedNodes[0].Task, false);
 			}
-			for (int i = 0; i < this.mSelectedNodes.Count; i++)
+			for (int i = 0; i < SelectedNodes.Count; i++)
 			{
-				this.mSelectedNodes[i].deselect();
+				SelectedNodes[i].deselect();
 			}
-			this.mSelectedNodes.Clear();
+			SelectedNodes.Clear();
 			this.mNodeSelectedID.Clear();
 		}
 
 		public void deselectWithParent(NodeDesigner nodeDesigner)
 		{
-			for (int i = this.mSelectedNodes.Count - 1; i >= 0; i--)
+			for (int i = SelectedNodes.Count - 1; i >= 0; i--)
 			{
-				if (this.mSelectedNodes[i].hasParent(nodeDesigner))
+				if (SelectedNodes[i].hasParent(nodeDesigner))
 				{
-					this.deselect(this.mSelectedNodes[i]);
+					this.deselect(SelectedNodes[i]);
 				}
 			}
 		}
@@ -342,19 +287,19 @@ namespace BehaviorDesigner.Editor
         /// <returns></returns>
 		public bool dragSelectedNodes(Vector2 delta, bool dragChildren, bool hasDragged)
 		{
-			if (this.mSelectedNodes.Count == 0)
+			if (SelectedNodes.Count == 0)
 			{
 				return false;
 			}
-			bool flag = this.mSelectedNodes.Count == 1;
-			for (int i = 0; i < this.mSelectedNodes.Count; i++)
+			bool flag = SelectedNodes.Count == 1;
+			for (int i = 0; i < SelectedNodes.Count; i++)
 			{
-				this.dragTask(this.mSelectedNodes[i], delta, dragChildren, hasDragged);
+				this.dragTask(SelectedNodes[i], delta, dragChildren, hasDragged);
 			}
-			if (flag && dragChildren && this.mSelectedNodes[0].IsRootDisplay && this.mRootNode != null)
-			{
-				this.dragTask(this.mRootNode, delta, dragChildren, hasDragged);
-			}
+            //if (flag && dragChildren && SelectedNodes[0].IsRootDisplay && RootNode != null)
+            //{
+            //    this.dragTask(RootNode, delta, dragChildren, hasDragged);
+            //}
 			return true;
 		}
 
@@ -389,9 +334,9 @@ namespace BehaviorDesigner.Editor
 					}
 				}
 			}
-			if (nodeDesigner.IsParent && dragChildren)
+			if (dragChildren)
 			{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
+                Task parentTask = nodeDesigner.Task;
 				if (parentTask.Children != null)
 				{
 					for (int i = 0; i < parentTask.Children.Count; i++)
@@ -406,7 +351,6 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
-
 		public bool nodeCanOriginateConnection(NodeDesigner nodeDesigner, NodeConnection connection)
 		{
 			return !nodeDesigner.IsRootDisplay || (nodeDesigner.IsRootDisplay && connection.NodeConnectionType == NodeConnectionType.Outgoing);
@@ -414,14 +358,14 @@ namespace BehaviorDesigner.Editor
 
 		public bool nodeCanAcceptConnection(NodeDesigner nodeDesigner, NodeConnection connection)
 		{
-			if ((!nodeDesigner.IsRootDisplay || connection.NodeConnectionType != NodeConnectionType.Incoming) && (nodeDesigner.IsRootDisplay || (!nodeDesigner.IsParent && (nodeDesigner.IsParent || connection.NodeConnectionType != NodeConnectionType.Outgoing))))
-			{
-				return false;
-			}
-			if (nodeDesigner.IsRootDisplay || connection.OriginatingNodeDesigner.IsRootDisplay)
-			{
-				return true;
-			}
+            //if ((!nodeDesigner.IsRootDisplay || connection.NodeConnectionType != NodeConnectionType.Incoming) && (nodeDesigner.IsRootDisplay || (!nodeDesigner.IsParent && (connection.NodeConnectionType != NodeConnectionType.Outgoing))))
+            //{
+            //    return false;
+            //}
+            //if (nodeDesigner.IsRootDisplay || connection.OriginatingNodeDesigner.IsRootDisplay)
+            //{
+            //    return true;
+            //}
 			HashSet<NodeDesigner> hashSet = new HashSet<NodeDesigner>();
 			NodeDesigner nodeDesigner2 = (connection.NodeConnectionType == NodeConnectionType.Outgoing) ? nodeDesigner : connection.OriginatingNodeDesigner;
 			NodeDesigner item = (connection.NodeConnectionType == NodeConnectionType.Outgoing) ? connection.OriginatingNodeDesigner : nodeDesigner;
@@ -435,9 +379,9 @@ namespace BehaviorDesigner.Editor
 				return true;
 			}
 			set.Add(nodeDesigner);
-			if (nodeDesigner.IsParent)
-			{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
+            //if (nodeDesigner.IsParent)
+            //{
+                Task parentTask = nodeDesigner.Task;
 				if (parentTask.Children != null)
 				{
 					for (int i = 0; i < parentTask.Children.Count; i++)
@@ -448,19 +392,19 @@ namespace BehaviorDesigner.Editor
 						}
 					}
 				}
-			}
+            //}
 			return false;
 		}
 
 		public void connectNodes(BehaviorSource behaviorSource, NodeDesigner nodeDesigner)
 		{
-			NodeConnection nodeConnection = this.mActiveNodeConnection;
-			this.mActiveNodeConnection = null;
+			NodeConnection nodeConnection = ActiveNodeConnection;
+			ActiveNodeConnection = null;
 			if (nodeConnection != null && !nodeConnection.OriginatingNodeDesigner.Equals(nodeDesigner))
 			{
 				NodeDesigner originatingNodeDesigner = nodeConnection.OriginatingNodeDesigner;
 				BehaviorUndo.RegisterUndo("Connection", this, true, true);
-				BehaviorUndo.RegisterUndo("Connection", behaviorSource.Owner.GetObject(), false, true);
+                //BehaviorUndo.RegisterUndo("Connection", behaviorSource.Owner.GetObject(), false, true);
 				BehaviorUndo.RegisterUndo("Connection", nodeDesigner, false, true);
 				BehaviorUndo.RegisterUndo("Connection", originatingNodeDesigner, false, true);
 				if (nodeConnection.NodeConnectionType == NodeConnectionType.Outgoing)
@@ -479,9 +423,9 @@ namespace BehaviorDesigner.Editor
 				}
                 //if (nodeConnection.OriginatingNodeDesigner.IsRootDisplay)
                 //{
-                //    this.mRootNode = nodeConnection.DestinationNodeDesigner;
+                //    RootNode = nodeConnection.DestinationNodeDesigner;
                 //}
-				this.mDetachedNodes.Remove(nodeConnection.DestinationNodeDesigner);
+				DetachedNodes.Remove(nodeConnection.DestinationNodeDesigner);
 			}
 		}
 
@@ -506,8 +450,8 @@ namespace BehaviorDesigner.Editor
 			}
 		}
 
-		private void checkForLastConnectionRemoval(NodeDesigner nodeDesigner)
-		{
+        private void checkForLastConnectionRemoval(NodeDesigner nodeDesigner)
+        {
             //if (nodeDesigner.IsRootDisplay)
             //{
             //    if (nodeDesigner.OutgoingNodeConnections.Count == 1)
@@ -518,25 +462,25 @@ namespace BehaviorDesigner.Editor
             //}
             //else
             //{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
-				if (parentTask.Children != null && parentTask.Children.Count + 1 > parentTask.MaxChildren())
-				{
-					NodeConnection nodeConnection = null;
-					for (int i = 0; i < nodeDesigner.OutgoingNodeConnections.Count; i++)
-					{
-						if (nodeDesigner.OutgoingNodeConnections[i].DestinationNodeDesigner.Equals(parentTask.Children[parentTask.Children.Count - 1].NodeData.NodeDesigner as NodeDesigner))
-						{
-							nodeConnection = nodeDesigner.OutgoingNodeConnections[i];
-							break;
-						}
-					}
-					if (nodeConnection != null)
-					{
-						this.removeConnection(nodeConnection, "Connect");
-					}
-				}
+            Task parentTask = nodeDesigner.Task;
+            if (parentTask.Children != null)
+            {
+                NodeConnection nodeConnection = null;
+                for (int i = 0; i < nodeDesigner.OutgoingNodeConnections.Count; i++)
+                {
+                    if (nodeDesigner.OutgoingNodeConnections[i].DestinationNodeDesigner.Equals(parentTask.Children[parentTask.Children.Count - 1].NodeData.NodeDesigner as NodeDesigner))
+                    {
+                        nodeConnection = nodeDesigner.OutgoingNodeConnections[i];
+                        break;
+                    }
+                }
+                if (nodeConnection != null)
+                {
+                    this.removeConnection(nodeConnection, "Connect");
+                }
+            }
             //}
-		}
+        }
 
         public void nodeConnectionsAt(Vector2 point, Vector2 offset, ref List<NodeConnection> nodeConnections)
         {
@@ -546,22 +490,22 @@ namespace BehaviorDesigner.Editor
             //}
             //this.nodeChildrenConnectionsAt(this.mEntryTask, point, offset, ref nodeConnections);
 
-            if (this.mRootNode == null) { return; }
+            if (DetachedNodes == null || DetachedNodes.Count <= 0) { return; }
 
-            this.nodeChildrenConnectionsAt(this.mRootNode, point, offset, ref nodeConnections);
+            //this.nodeChildrenConnectionsAt(RootNode, point, offset, ref nodeConnections);
 
-            for (int i = 0; i < this.mDetachedNodes.Count; i++)
+            for (int i = 0; i < DetachedNodes.Count; i++)
             {
-                this.nodeChildrenConnectionsAt(this.mDetachedNodes[i], point, offset, ref nodeConnections);
+                this.nodeChildrenConnectionsAt(DetachedNodes[i], point, offset, ref nodeConnections);
             }
         }
 
 		public void nodeChildrenConnectionsAt(NodeDesigner nodeDesigner, Vector2 point, Vector2 offset, ref List<NodeConnection> nodeConnections)
 		{
 			nodeDesigner.connectionContains(point, offset, ref nodeConnections);
-			if (nodeDesigner.IsParent)
-			{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
+            //if (nodeDesigner.IsParent)
+            //{
+                Task parentTask = nodeDesigner.Task;
 				if (parentTask != null && parentTask.Children != null)
 				{
 					for (int i = 0; i < parentTask.Children.Count; i++)
@@ -572,7 +516,7 @@ namespace BehaviorDesigner.Editor
 						}
 					}
 				}
-			}
+            //}
 		}
 
 		public void removeConnection(NodeConnection nodeConnection, string undoName)
@@ -580,12 +524,12 @@ namespace BehaviorDesigner.Editor
 			BehaviorUndo.RegisterUndo(undoName, nodeConnection.OriginatingNodeDesigner, false, true);
 			BehaviorUndo.RegisterUndo(undoName, nodeConnection.OriginatingNodeDesigner.Task, false, true);
 			BehaviorUndo.RegisterUndo(undoName, nodeConnection.DestinationNodeDesigner, false, true);
-			this.mDetachedNodes.Add(nodeConnection.DestinationNodeDesigner);
+			DetachedNodes.Add(nodeConnection.DestinationNodeDesigner);
 			nodeConnection.OriginatingNodeDesigner.removeChildNode(nodeConnection.DestinationNodeDesigner);
-			if (nodeConnection.OriginatingNodeDesigner.IsRootDisplay)
-			{
-				this.mRootNode = null;
-			}
+            //if (nodeConnection.OriginatingNodeDesigner.IsRootDisplay)
+            //{
+            //    RootNode = null;
+            //}
 		}
 
 		public void moveChildNode(NodeDesigner nodeDesigner, int index, bool decreaseIndex)
@@ -595,9 +539,9 @@ namespace BehaviorDesigner.Editor
 
 		public bool isSelected(NodeConnection nodeConnection)
 		{
-			for (int i = 0; i < this.mSelectedNodeConnections.Count; i++)
+			for (int i = 0; i < SelectedNodeConnections.Count; i++)
 			{
-				if (this.mSelectedNodeConnections[i].Equals(nodeConnection))
+				if (SelectedNodeConnections[i].Equals(nodeConnection))
 				{
 					return true;
 				}
@@ -607,23 +551,23 @@ namespace BehaviorDesigner.Editor
 
 		public void select(NodeConnection nodeConnection)
 		{
-			this.mSelectedNodeConnections.Add(nodeConnection);
+			SelectedNodeConnections.Add(nodeConnection);
 			nodeConnection.select();
 		}
 
 		public void deselect(NodeConnection nodeConnection)
 		{
-			this.mSelectedNodeConnections.Remove(nodeConnection);
+			SelectedNodeConnections.Remove(nodeConnection);
 			nodeConnection.deselect();
 		}
 
 		public void clearConnectionSelection()
 		{
-			for (int i = 0; i < this.mSelectedNodeConnections.Count; i++)
+			for (int i = 0; i < SelectedNodeConnections.Count; i++)
 			{
-				this.mSelectedNodeConnections[i].deselect();
+				SelectedNodeConnections[i].deselect();
 			}
-			this.mSelectedNodeConnections.Clear();
+			SelectedNodeConnections.Clear();
 		}
 
 		public void graphDirty()
@@ -634,27 +578,27 @@ namespace BehaviorDesigner.Editor
             //}
             //this.mEntryTask.markDirty();
 
-            if (this.mRootNode == null)
+            if (DetachedNodes == null || DetachedNodes.Count <= 0)
             {
                 return;
             }
-            this.mRootNode.markDirty();//???????
-			if (this.mRootNode != null)
+            //RootNode.markDirty();//???????
+            //if (RootNode != null)
+            //{
+            //    this.markTaskDirty(RootNode);
+            //}
+			for (int i = DetachedNodes.Count - 1; i > -1; i--)
 			{
-				this.markTaskDirty(this.mRootNode);
-			}
-			for (int i = this.mDetachedNodes.Count - 1; i > -1; i--)
-			{
-				this.markTaskDirty(this.mDetachedNodes[i]);
+				this.markTaskDirty(DetachedNodes[i]);
 			}
 		}
 
 		private void markTaskDirty(NodeDesigner nodeDesigner)
 		{
 			nodeDesigner.markDirty();
-			if (nodeDesigner.IsParent)
-			{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
+            //if (nodeDesigner.IsParent)
+            //{
+				Task parentTask = nodeDesigner.Task;
 				if (parentTask.Children != null)
 				{
 					for (int i = 0; i < parentTask.Children.Count; i++)
@@ -665,66 +609,65 @@ namespace BehaviorDesigner.Editor
 						}
 					}
 				}
-			}
+            //}
 		}
 
 		public void selectAll()
 		{
-			for (int i = this.mSelectedNodes.Count - 1; i > -1; i--)
+			for (int i = SelectedNodes.Count - 1; i > -1; i--)
 			{
-				this.deselect(this.mSelectedNodes[i]);
+				this.deselect(SelectedNodes[i]);
 			}
-			if (this.mRootNode != null)
+            //if (RootNode != null)
+            //{
+            //    this.selectAll(RootNode);
+            //}
+			for (int j = DetachedNodes.Count - 1; j > -1; j--)
 			{
-				this.selectAll(this.mRootNode);
-			}
-			for (int j = this.mDetachedNodes.Count - 1; j > -1; j--)
-			{
-				this.selectAll(this.mDetachedNodes[j]);
+				this.selectAll(DetachedNodes[j]);
 			}
 		}
 
-		private void selectAll(NodeDesigner nodeDesigner)
-		{
-			this.select(nodeDesigner);
-			if (nodeDesigner.Task.GetType().IsSubclassOf(typeof(ParentTask)))
-			{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
-				if (parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						this.selectAll(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner);
-					}
-				}
-			}
-		}
+        private void selectAll(NodeDesigner nodeDesigner)
+        {
+            this.select(nodeDesigner);
+
+            Task parentTask = nodeDesigner.Task;
+            if (parentTask.Children != null)
+            {
+                for (int i = 0; i < parentTask.Children.Count; i++)
+                {
+                    this.selectAll(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner);
+                }
+            }
+
+        }
 
 		public List<TaskSerializer> copy()
 		{
 			List<TaskSerializer> list = new List<TaskSerializer>();
-			for (int i = 0; i < this.mSelectedNodes.Count; i++)
+			for (int i = 0; i < SelectedNodes.Count; i++)
 			{
 				TaskSerializer taskSerializer;
-				if ((taskSerializer = TaskCopier.CopySerialized(this.mSelectedNodes[i].Task)) != null)
+				if ((taskSerializer = TaskCopier.CopySerialized(SelectedNodes[i].Task)) != null)
 				{
-					if (this.mSelectedNodes[i].IsParent)
-					{
-						ParentTask parentTask = this.mSelectedNodes[i].Task as ParentTask;
+                    //if (SelectedNodes[i].IsParent)
+                    //{
+                        Task parentTask = SelectedNodes[i].Task;
 						if (parentTask.Children != null)
 						{
 							List<int> list2 = new List<int>();
 							for (int j = 0; j < parentTask.Children.Count; j++)
 							{
 								int item;
-								if ((item = this.mSelectedNodes.IndexOf(parentTask.Children[j].NodeData.NodeDesigner as NodeDesigner)) != -1)
+								if ((item = SelectedNodes.IndexOf(parentTask.Children[j].NodeData.NodeDesigner as NodeDesigner)) != -1)
 								{
 									list2.Add(item);
 								}
 							}
 							taskSerializer.childrenIndex = list2;
 						}
-					}
+                    //}
 					list.Add(taskSerializer);
 				}
 			}
@@ -789,7 +732,7 @@ namespace BehaviorDesigner.Editor
 						NodeConnection nodeConnection = ScriptableObject.CreateInstance<NodeConnection>();
 						nodeConnection.loadConnection(nodeDesigner2, NodeConnectionType.Outgoing);
 						nodeDesigner2.addChildNode(list[taskSerializer2.childrenIndex[l]], nodeConnection, false);
-						this.mDetachedNodes.Remove(list[taskSerializer2.childrenIndex[l]]);
+						DetachedNodes.Remove(list[taskSerializer2.childrenIndex[l]]);
 					}
 				}
 			}
@@ -797,22 +740,32 @@ namespace BehaviorDesigner.Editor
 			return true;
 		}
 
-    
-
 		public void identifyNode(NodeDesigner nodeDesigner)
 		{
 			nodeDesigner.identifyNode();
 		}
     
-
+        /// <summary>
+        /// 是否有根节点
+        /// </summary>
+        /// <returns></returns>
 		public bool hasRootNode()
 		{
-			return this.mRootNode != null;
+			if (DetachedNodes == null || DetachedNodes.Count<=0)
+            {
+                return false;
+            }
+            return true;
 		}
 
+        /// <summary>
+        /// 根节点位置
+        /// </summary>
+        /// <returns></returns>
 		public Vector2 rootNodePosition()
 		{
-            return this.mRootNode.Task.NodeData.Position;
+            return DetachedNodes[0].Task.NodeData.Position;
+           // return RootNode.Task.NodeData.Position;
 		}
 
 		private void loadNodeSelection(NodeDesigner nodeDesigner)
@@ -825,9 +778,9 @@ namespace BehaviorDesigner.Editor
 			{
 				this.select(nodeDesigner, false);
 			}
-			if (nodeDesigner.IsParent)
-			{
-				ParentTask parentTask = nodeDesigner.Task as ParentTask;
+            //if (nodeDesigner.IsParent)
+            //{
+                Task parentTask = nodeDesigner.Task;
 				if (parentTask.Children != null)
 				{
 					for (int i = 0; i < parentTask.Children.Count; i++)
@@ -838,7 +791,7 @@ namespace BehaviorDesigner.Editor
 						}
 					}
 				}
-			}
+            //}
 		}
 
 		public void clear(bool saveSelectedNodes)
@@ -852,11 +805,11 @@ namespace BehaviorDesigner.Editor
 				this.mPrevNodeSelectedID = null;
 			}
 			this.mNodeSelectedID.Clear();
-			this.mSelectedNodes.Clear();
-			this.mSelectedNodeConnections.Clear();
+			SelectedNodes.Clear();
+			SelectedNodeConnections.Clear();
             //this.mEntryTask = null;
-			this.mRootNode = null;
-			this.mDetachedNodes = new List<NodeDesigner>();
+            //RootNode = null;
+			DetachedNodes = new List<NodeDesigner>();
 		}
 
 
@@ -871,55 +824,48 @@ namespace BehaviorDesigner.Editor
         public bool drawNodes(Vector2 mousePosition, Vector2 offset, float graphZoom)
         {
             bool result = false;
-            //if (this.mEntryTask == null)
-            //{
-            //    return false;
-            //}
-            //this.mEntryTask.drawNode(offset, false, false);
-            //this.mEntryTask.drawNodeConnection(offset, graphZoom, false);
+            if (DetachedNodes == null || DetachedNodes.Count<=0) { return false; }
 
-            if (mRootNode == null) { return false; }
-
-            //绘制根节点
-            this.drawNodeConnectionChildren(this.mRootNode, offset, graphZoom, this.mRootNode.Task.NodeData.Disabled);//绘制根节点的连线
-            result = this.drawNodeChildren(this.mRootNode, offset, this.mRootNode.Task.NodeData.Disabled);//绘制节点
+            ////绘制根节点
+            //this.drawNodeConnectionChildren(RootNode, offset, graphZoom, RootNode.Task.NodeData.Disabled);//绘制根节点的连线
+            //result = this.drawNodeChildren(RootNode, offset, RootNode.Task.NodeData.Disabled);//绘制节点
 
             //绘制正在连接的线（鼠标拖动的连线）
-            if (mousePosition != new Vector2(-1f, -1f) && this.mActiveNodeConnection != null)
+            if (mousePosition != new Vector2(-1f, -1f) && ActiveNodeConnection != null)
             {
-                this.mActiveNodeConnection.HorizontalHeight = (this.mActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, this.mActiveNodeConnection.NodeConnectionType).y + mousePosition.y) / 2f;
-                this.mActiveNodeConnection.drawConnection(
-                    this.mActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, this.mActiveNodeConnection.NodeConnectionType),
+                ActiveNodeConnection.HorizontalHeight = (ActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, ActiveNodeConnection.NodeConnectionType).y + mousePosition.y) / 2f;
+                ActiveNodeConnection.drawConnection(
+                    ActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, ActiveNodeConnection.NodeConnectionType),
                     mousePosition,
                     graphZoom,
-                    this.mActiveNodeConnection.NodeConnectionType == NodeConnectionType.Outgoing && this.mActiveNodeConnection.OriginatingNodeDesigner.isDisabled());
+                    ActiveNodeConnection.NodeConnectionType == NodeConnectionType.Outgoing && ActiveNodeConnection.OriginatingNodeDesigner.isDisabled());
             }
             //绘制未连线的节点
-            for (int i = 0; i < this.mDetachedNodes.Count; i++)
+            for (int i = 0; i < DetachedNodes.Count; i++)
             {
                 //绘制节点一下所有节点的连线
-                this.drawNodeConnectionChildren(this.mDetachedNodes[i], offset, graphZoom, this.mDetachedNodes[i].Task.NodeData.Disabled);
+                this.drawNodeConnectionChildren(DetachedNodes[i], offset, graphZoom, DetachedNodes[i].Task.NodeData.Disabled);
 
                 //绘制自己和自己的子节点
-                if (this.drawNodeChildren(this.mDetachedNodes[i], offset, this.mDetachedNodes[i].Task.NodeData.Disabled))
+                if (this.drawNodeChildren(DetachedNodes[i], offset, DetachedNodes[i].Task.NodeData.Disabled))
                 {
                     result = true;
                 }
 
-                this.drawNodeCommentChildren(this.mDetachedNodes[i], offset);
+                this.drawNodeCommentChildren(DetachedNodes[i], offset);
             }
             //绘制选中的节点
-            for (int l = 0; l < this.mSelectedNodes.Count; l++)
+            for (int l = 0; l < SelectedNodes.Count; l++)
             {
-                if (this.mSelectedNodes[l].drawNode(offset, true, this.mSelectedNodes[l].isDisabled()))
+                if (SelectedNodes[l].drawNode(offset, true, SelectedNodes[l].isDisabled()))
                 {
                     result = true;
                 }
             }
             //绘制选中的连线
-            for (int j = 0; j < this.mSelectedNodeConnections.Count; j++)
+            for (int j = 0; j < SelectedNodeConnections.Count; j++)
             {
-                this.mSelectedNodeConnections[j].drawConnection(offset, graphZoom, this.mSelectedNodeConnections[j].OriginatingNodeDesigner.isDisabled());
+                SelectedNodeConnections[j].drawConnection(offset, graphZoom, SelectedNodeConnections[j].OriginatingNodeDesigner.isDisabled());
             }
             return result;
         }
@@ -935,9 +881,9 @@ namespace BehaviorDesigner.Editor
             {
                 result = true;
             }
-            if (nodeDesigner.IsParent)
-            {
-                ParentTask parentTask = nodeDesigner.Task as ParentTask;
+            //if (nodeDesigner.IsParent)
+            //{
+                Task parentTask = nodeDesigner.Task;
                 if (!parentTask.NodeData.Collapsed && parentTask.Children != null)
                 {
                     for (int i = parentTask.Children.Count - 1; i > -1; i--)
@@ -948,7 +894,7 @@ namespace BehaviorDesigner.Editor
                         }
                     }
                 }
-            }
+            //}
             return result;
         }
         /// <summary>
@@ -965,15 +911,15 @@ namespace BehaviorDesigner.Editor
                 return;
             }
 
-            if (nodeDesigner.taskName == "Entry Task") { Debug.Log("isRootDisplay:" + nodeDesigner.Task.NodeData.Collapsed); }
+            //if (nodeDesigner.taskName == "Entry Task") { Debug.Log("isRootDisplay:" + nodeDesigner.Task.NodeData.Collapsed); }
 
 
             if (!nodeDesigner.Task.NodeData.Collapsed)
             {
                 nodeDesigner.drawNodeConnection(offset, graphZoom, nodeDesigner.Task.NodeData.Disabled || disabledNode);
-                if (nodeDesigner.IsParent)
-                {
-                    ParentTask parentTask = nodeDesigner.Task as ParentTask;
+                //if (nodeDesigner.IsParent)
+                //{
+                    Task parentTask = nodeDesigner.Task;
                     if (parentTask.Children != null)
                     {
                         for (int i = 0; i < parentTask.Children.Count; i++)
@@ -984,7 +930,7 @@ namespace BehaviorDesigner.Editor
                             }
                         }
                     }
-                }
+                //}
             }
         }
 
@@ -995,9 +941,9 @@ namespace BehaviorDesigner.Editor
                 return;
             }
             nodeDesigner.drawNodeComment(offset);
-            if (nodeDesigner.IsParent)
-            {
-                ParentTask parentTask = nodeDesigner.Task as ParentTask;
+            //if (nodeDesigner.IsParent)
+            //{
+                Task parentTask = nodeDesigner.Task;
                 if (!parentTask.NodeData.Collapsed && parentTask.Children != null)
                 {
                     for (int i = 0; i < parentTask.Children.Count; i++)
@@ -1008,7 +954,7 @@ namespace BehaviorDesigner.Editor
                         }
                     }
                 }
-            }
+            //}
         }
 
         #endregion
@@ -1020,16 +966,16 @@ namespace BehaviorDesigner.Editor
         /// <param name="behaviorSource"></param>
         public void save(BehaviorSource behaviorSource)
         {
-            if (this.mRootNode == null)
+            if (DetachedNodes == null || DetachedNodes.Count <= 0)
             {
                 return;
             }
             List<Task> list = new List<Task>();
-            for (int i = 0; i < this.mDetachedNodes.Count; i++)
+            for (int i = 0; i < DetachedNodes.Count; i++)
             {
-                list.Add(this.mDetachedNodes[i].Task);
+                list.Add(DetachedNodes[i].Task);
             }
-            behaviorSource.save(this.mRootNode.Task, list);
+            behaviorSource.save(list);
         }
 
         /// <summary>
@@ -1041,66 +987,88 @@ namespace BehaviorDesigner.Editor
         /// <returns></returns>
         public bool Load(BehaviorSource behaviorSource, bool loadPrevBehavior, Vector2 nodePosition)
         {
-            behaviorSource.CheckForJSONSerialization(behaviorSource.Owner != null && (PrefabUtility.GetPrefabType(behaviorSource.Owner.GetObject()) == PrefabType.Prefab || PrefabUtility.GetPrefabType(behaviorSource.Owner.GetObject()) == PrefabType.PrefabInstance));
-            if (behaviorSource.RootTask == null && behaviorSource.DetachedTasks == null)
-            {
-                this.clear(false);
-                return false;
-            }
-            if (loadPrevBehavior)
-            {
-                this.mSelectedNodes.Clear();
-                this.mSelectedNodeConnections.Clear();
-                if (this.mPrevNodeSelectedID != null)
-                {
-                    for (int i = 0; i < this.mPrevNodeSelectedID.Length; i++)
-                    {
-                        this.mNodeSelectedID.Add(this.mPrevNodeSelectedID[i]);
-                    }
-                    this.mPrevNodeSelectedID = null;
-                }
-            }
-            else
-            {
-                this.clear(false);
-            }
-            this.mNextTaskID = 0;
-            this.mRootNode = null;
-            this.mDetachedNodes.Clear();
-            Task task;
-            List<Task> list;
-            behaviorSource.load(out task, out list);
-            int num = BehaviorDesignerUtility.JSONTaskCount(behaviorSource.Serialization);
-            if (num > 0)
-            {
-                int num2 = BehaviorDesignerUtility.TaskCount(behaviorSource);
-                if (num2 != num)
-                {
-                    behaviorSource.CheckForJSONSerialization(true);
-                    behaviorSource.load(out task, out list);
-                }
-            }
+            //behaviorSource.CheckForJSONSerialization(behaviorSource.Owner != null && (PrefabUtility.GetPrefabType(behaviorSource.Owner.GetObject()) == PrefabType.Prefab || PrefabUtility.GetPrefabType(behaviorSource.Owner.GetObject()) == PrefabType.PrefabInstance));
+            //if (behaviorSource.DetachedTasks == null)
+            //{
+            //    this.clear(false);
+            //    return false;
+            //}
+            //if (loadPrevBehavior)
+            //{
+            //    SelectedNodes.Clear();
+            //    SelectedNodeConnections.Clear();
+            //    if (this.mPrevNodeSelectedID != null)
+            //    {
+            //        for (int i = 0; i < this.mPrevNodeSelectedID.Length; i++)
+            //        {
+            //            this.mNodeSelectedID.Add(this.mPrevNodeSelectedID[i]);
+            //        }
+            //        this.mPrevNodeSelectedID = null;
+            //    }
+            //}
+            //else
+            //{
+            //    this.clear(false);
+            //}
+            //this.mNextTaskID = 0;
+            ////RootNode = null;
+            //DetachedNodes.Clear();
+            //Task task;
+            //List<Task> list;
+            //behaviorSource.load(out list);
+            //int num = BehaviorDesignerUtility.JSONTaskCount(behaviorSource.Serialization);
+            //if (num > 0)
+            //{
+            //    int num2 = BehaviorDesignerUtility.TaskCount(behaviorSource);
+            //    if (num2 != num)
+            //    {
+            //        behaviorSource.CheckForJSONSerialization(true);
+            //        behaviorSource.load(out list);
+            //    }
+            //}
 
-            if (task != null)
-            {//加载根节点
-                this.mRootNode = ScriptableObject.CreateInstance<NodeDesigner>();
-                this.mRootNode.ResetNodeConnection();//重置连接
-                this.mRootNode.loadTask(task, ref this.mNextTaskID);//加载节点和节点的子节点
-                this.mRootNode.RootDisplay();//采用根节点显示的方式显示
+            ////if (task != null)
+            ////{//加载根节点
+            ////    RootNode = ScriptableObject.CreateInstance<NodeDesigner>();
+            ////    RootNode.ResetNodeConnection();//重置连接
+            ////    RootNode.loadTask(task, ref this.mNextTaskID);//加载节点和节点的子节点
+            ////    RootNode.RootDisplay();//采用根节点显示的方式显示
 
-                this.loadNodeSelection(this.mRootNode);
+            ////    this.loadNodeSelection(RootNode);
+            ////}
+            //if (list != null)
+            //{
+            //    for (int j = 0; j < list.Count; j++)
+            //    {
+            //        NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
+            //        nodeDesigner.loadTask(list[j], ref this.mNextTaskID);
+            //        DetachedNodes.Add(nodeDesigner);
+            //        this.loadNodeSelection(nodeDesigner);
+            //    }
+            //}
+            return true;
+        }
+        public bool Load(BehaviorSource data)
+        {
+            if (data.DetachedTasks == null)
+            {
+                clear(false);
+                return false ;
             }
+            DetachedNodes.Clear();
+            List<Task> list=data.GetTasks();
             if (list != null)
             {
                 for (int j = 0; j < list.Count; j++)
                 {
                     NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
                     nodeDesigner.loadTask(list[j], ref this.mNextTaskID);
-                    this.mDetachedNodes.Add(nodeDesigner);
-                    this.loadNodeSelection(nodeDesigner);
+                    DetachedNodes.Add(nodeDesigner);
+                    loadNodeSelection(nodeDesigner);
                 }
             }
             return true;
+
         }
         #endregion
 
@@ -1115,27 +1083,15 @@ namespace BehaviorDesigner.Editor
         public NodeDesigner addNode(BehaviorSource behaviorSource, Type type, Vector2 position)
         {
             BehaviorUndo.RegisterUndo("Add Task", this, true, true);
-            BehaviorUndo.RegisterUndo("Add Task", behaviorSource.Owner.GetObject(), false, true);
-
-            //===实例化一个任务
-            //Task task;
-            //if (this.mEntryTask == null)
-            //{
-            //    task = (ScriptableObject.CreateInstance("EntryTask") as Task);
-            //    this.mEntryTask = ScriptableObject.CreateInstance<NodeDesigner>();
-            //    this.mEntryTask.loadNode(task, behaviorSource, new Vector2(position.x, position.y - 120f), ref this.mNextTaskID);
-            //    this.mEntryTask.makeEntryDisplay();
-            //}
-
 
             Task task;
-            if (this.mRootNode == null)
-            {
-                task = (ScriptableObject.CreateInstance("EntryTask") as Task);
-                this.mRootNode = ScriptableObject.CreateInstance<NodeDesigner>();
-                this.mRootNode.loadNode(task, behaviorSource, new Vector2(position.x, position.y - 120f), ref this.mNextTaskID);
-                this.mRootNode.RootDisplay();
-            }
+            //if (RootNode == null)
+            //{//添加跟节点
+            //    task = (ScriptableObject.CreateInstance("EntryTask") as Task);
+            //    RootNode = ScriptableObject.CreateInstance<NodeDesigner>();
+            //    RootNode.loadNode(task, behaviorSource, new Vector2(position.x, position.y - 120f), ref this.mNextTaskID);
+            //    RootNode.RootDisplay();
+            //}
 
             task = (ScriptableObject.CreateInstance(type) as Task);
             if (task == null)
@@ -1148,17 +1104,17 @@ namespace BehaviorDesigner.Editor
             NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
             nodeDesigner.loadNode(task, behaviorSource, position, ref this.mNextTaskID);
 
-            if (this.mRootNode.OutgoingNodeConnections.Count == 0)
-            {
-                //创建一个连接
-                this.mActiveNodeConnection = ScriptableObject.CreateInstance<NodeConnection>();
-                this.mActiveNodeConnection.loadConnection(this.mRootNode, NodeConnectionType.Outgoing);
-                this.connectNodes(behaviorSource, nodeDesigner);
-            }
-            else
-            {
-                this.mDetachedNodes.Add(nodeDesigner);
-            }
+            //if (RootNode.OutgoingNodeConnections.Count == 0)
+            //{
+            //    //创建一个连接
+            //    ActiveNodeConnection = ScriptableObject.CreateInstance<NodeConnection>();
+            //    ActiveNodeConnection.loadConnection(RootNode, NodeConnectionType.Outgoing);
+            //    this.connectNodes(behaviorSource, nodeDesigner);
+            //}
+            //else
+            //{
+            DetachedNodes.Add(nodeDesigner);
+            //}
             return nodeDesigner;
         }
         /// <summary>
@@ -1169,38 +1125,38 @@ namespace BehaviorDesigner.Editor
         public bool delete(BehaviorSource behaviorSource)
         {
             BehaviorUndo.RegisterUndo("Delete", this, true, true);
-            BehaviorUndo.RegisterUndo("Delete", behaviorSource.Owner.GetObject(), false, true);
+            //BehaviorUndo.RegisterUndo("Delete", behaviorSource.Owner.GetObject(), false, true);
             bool flag = false;
-            if (this.mSelectedNodeConnections != null)
+            if (SelectedNodeConnections != null)
             {
-                for (int i = 0; i < this.mSelectedNodeConnections.Count; i++)
+                for (int i = 0; i < SelectedNodeConnections.Count; i++)
                 {
-                    this.removeConnection(this.mSelectedNodeConnections[i], "Delete");
+                    this.removeConnection(SelectedNodeConnections[i], "Delete");
                 }
-                this.mSelectedNodeConnections.Clear();
+                SelectedNodeConnections.Clear();
                 flag = true;
             }
-            if (this.mSelectedNodes != null)
+            if (SelectedNodes != null)
             {
                 //删除选中的节点
-                for (int j = 0; j < this.mSelectedNodes.Count; j++)
+                for (int j = 0; j < SelectedNodes.Count; j++)
                 {
-                    this.removeNode(this.mSelectedNodes[j]);
+                    this.removeNode(SelectedNodes[j]);
                 }
-                this.mSelectedNodes.Clear();
+                SelectedNodes.Clear();
                 flag = true;
             }
             if (flag)
             {
                 this.mNextTaskID = 0;
                 //this.mEntryTask.setID(ref this.mNextTaskID);//???
-                if (this.mRootNode != null)
+                //if (RootNode != null)
+                //{
+                //    RootNode.setID(ref this.mNextTaskID);
+                //}
+                for (int k = 0; k < DetachedNodes.Count; k++)
                 {
-                    this.mRootNode.setID(ref this.mNextTaskID);
-                }
-                for (int k = 0; k < this.mDetachedNodes.Count; k++)
-                {
-                    this.mDetachedNodes[k].setID(ref this.mNextTaskID);
+                    DetachedNodes[k].setID(ref this.mNextTaskID);
                 }
                 this.save(behaviorSource);
             }
@@ -1216,26 +1172,26 @@ namespace BehaviorDesigner.Editor
             {
                 return;
             }
-            if (nodeDesigner.IsParent)
-            {
+            //if (nodeDesigner.IsParent)
+            //{
                 for (int i = 0; i < nodeDesigner.OutgoingNodeConnections.Count; i++)
                 {
                     NodeDesigner destinationNodeDesigner = nodeDesigner.OutgoingNodeConnections[i].DestinationNodeDesigner;
                     BehaviorUndo.RegisterUndo("Delete", destinationNodeDesigner, false, true);
-                    this.mDetachedNodes.Add(destinationNodeDesigner);
+                    DetachedNodes.Add(destinationNodeDesigner);
                     destinationNodeDesigner.ParentNodeDesigner = null;
                 }
-            }
+            //}
             if (nodeDesigner.ParentNodeDesigner != null)
             {
                 BehaviorUndo.RegisterUndo("Delete", nodeDesigner.ParentNodeDesigner, false, true);
                 BehaviorUndo.RegisterCompleteUndo("Delete", nodeDesigner.ParentNodeDesigner.Task);
                 nodeDesigner.ParentNodeDesigner.removeChildNode(nodeDesigner);
             }
-            //if (this.mRootNode != null && this.mRootNode.Equals(nodeDesigner))
+            //if (RootNode != null && RootNode.Equals(nodeDesigner))
             //{
-            //    this.mRootNode.removeChildNode(nodeDesigner);
-            //    this.mRootNode = null;
+            //    RootNode.removeChildNode(nodeDesigner);
+            //    RootNode = null;
             //}
             bool flag = false;
             bool flag2 = false;
@@ -1265,7 +1221,7 @@ namespace BehaviorDesigner.Editor
                     }
                 }
             }
-            this.mDetachedNodes.Remove(nodeDesigner);
+            DetachedNodes.Remove(nodeDesigner);
             BehaviorUndo.DestroyObject(nodeDesigner.Task, false);
             BehaviorUndo.DestroyObject(nodeDesigner, false);
         }

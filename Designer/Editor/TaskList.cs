@@ -205,11 +205,10 @@ namespace BehaviorDesigner.Editor
 					Type[] types = assembly.GetTypes();
 					for (int j = 0; j < types.Length; j++)
 					{
-						if (!types[j].Equals(typeof(ExternalBehavior)) && !types[j].IsSubclassOf(typeof(ExternalBehavior)) && !types[j].Equals(typeof(BehaviorReference)) && !types[j].IsAbstract &&
-                            (types[j].IsSubclassOf(typeof(BehaviorDesigner.Runtime.Tasks.Action)) || types[j].IsSubclassOf(typeof(Composite)) || types[j].IsSubclassOf(typeof(Conditional)) || types[j].IsSubclassOf(typeof(Decorator))))
-						{
-							list.Add(types[j]);
-						}
+                        if (!types[j].IsAbstract && types[j].IsSubclassOf(typeof(BehaviorDesigner.Runtime.Tasks.Task)) )
+                        {
+                            list.Add(types[j]);
+                        }
 					}
 				}
 			}
@@ -222,23 +221,7 @@ namespace BehaviorDesigner.Editor
 			int id = 0;
 			for (int k = 0; k < list.Count; k++)
 			{
-				string text;
-				if (list[k].IsSubclassOf(typeof(BehaviorDesigner.Runtime.Tasks.Action)))
-				{
-					text = "Actions";
-				}
-				else if (list[k].IsSubclassOf(typeof(Composite)))
-				{
-					text = "Composites";
-				}
-				else if (list[k].IsSubclassOf(typeof(Conditional)))
-				{
-					text = "Conditionals";
-				}
-				else
-				{
-					text = "Decorators";
-				}
+				string text="";
 				TaskCategoryAttribute[] array;
 				if ((array = (list[k].GetCustomAttributes(typeof(TaskCategoryAttribute), false) as TaskCategoryAttribute[])).Length > 0)
 				{

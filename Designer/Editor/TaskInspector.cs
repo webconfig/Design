@@ -108,7 +108,7 @@ namespace BehaviorDesigner.Editor
 			FieldInfo[] fields = task.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			for (int i = 0; i < fields.Length; i++)
 			{
-				if (fields[i].GetCustomAttributes(typeof(NonSerializedAttribute), false).Length <= 0 && ((!fields[i].IsPrivate && !fields[i].IsFamily) || fields[i].GetCustomAttributes(typeof(SerializeField), false).Length != 0) && (!task.GetType().IsSubclassOf(typeof(ParentTask)) || !fields[i].Name.Equals("children")))
+				if (fields[i].GetCustomAttributes(typeof(NonSerializedAttribute), false).Length <= 0 && ((!fields[i].IsPrivate && !fields[i].IsFamily) || fields[i].GetCustomAttributes(typeof(SerializeField), false).Length != 0) && (!fields[i].Name.Equals("children")))
 				{
 					SerializedProperty serializedProperty = serializedObject.FindProperty(fields[i].Name);
 					if (serializedProperty != null)

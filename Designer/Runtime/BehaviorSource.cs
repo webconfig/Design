@@ -1,30 +1,20 @@
 using BehaviorDesigner.Runtime.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 namespace BehaviorDesigner.Runtime
 {
+    /// <summary>
+    /// 数据源
+    /// </summary>
 	[Serializable]
 	public class BehaviorSource
 	{
 		public string behaviorName = "Behavior";
 
 		public string behaviorDescription = "";
-
-		private int behaviorID = -1;
-
-		private bool isDirty = true;
-
-        //[SerializeField]
-        //private Task mEntryTask;
-
-		[SerializeField]
-		private Task mRootTask;
-
-		[SerializeField]
-		private List<Task> mDetachedTasks;
-
 		[SerializeField]
 		private string mSerialization;
 
@@ -33,68 +23,17 @@ namespace BehaviorDesigner.Runtime
 
 		private Dictionary<string, int> mSharedVariableIndex;
 
-		[SerializeField]
-		private IBehavior mOwner;
+        //[SerializeField]
+        //private IBehavior mOwner;
 
-		public int BehaviorID
-		{
-			get
-			{
-				return this.behaviorID;
-			}
-			set
-			{
-				this.behaviorID = value;
-			}
-		}
+        public int BehaviorID;
 
-		public bool IsDirty
-		{
-			get
-			{
-				return this.isDirty;
-			}
-			set
-			{
-				this.isDirty = value;
-			}
-		}
+        public bool IsDirty;
 
-        //public Task EntryTask
-        //{
-        //    get
-        //    {
-        //        return this.mEntryTask;
-        //    }
-        //    set
-        //    {
-        //        this.mEntryTask = value;
-        //    }
-        //}
-
-		public Task RootTask
-		{
-			get
-			{
-				return this.mRootTask;
-			}
-			set
-			{
-				this.mRootTask = value;
-			}
-		}
-
-		public List<Task> DetachedTasks
-		{
-			get
-			{
-				return this.mDetachedTasks;
-			}
-			set
-			{
-				this.mDetachedTasks = value;
-			}
-		}
+        /// <summary>
+        /// 离散节点
+        /// </summary>
+        public List<Task> DetachedTasks;
 
 		public string Serialization
 		{
@@ -121,46 +60,50 @@ namespace BehaviorDesigner.Runtime
 			}
 		}
 
-		public IBehavior Owner
-		{
-			get
-			{
-				return this.mOwner;
-			}
-			set
-			{
-				this.mOwner = value;
-			}
-		}
+        //public IBehavior Owner
+        //{
+        //    get
+        //    {
+        //        return this.mOwner;
+        //    }
+        //    set
+        //    {
+        //        this.mOwner = value;
+        //    }
+        //}
 
 		public BehaviorSource(IBehavior owner)
 		{
-			this.mOwner = owner;
+            //this.mOwner = owner;
+		}
+        public BehaviorSource()
+        {
+        }
+        /// <summary>
+        /// 保存
+        /// </summary>
+        /// <param name="rootTask"></param>
+        /// <param name="detachedTasks"></param>
+		public void save(List<Task> detachedTasks)
+		{
+            DetachedTasks = detachedTasks;
 		}
 
-		public void save(Task rootTask, List<Task> detachedTasks)
+        public List<Task> GetTasks()
 		{
-            //this.mEntryTask = entryTask;
-			this.mRootTask = rootTask;
-			this.mDetachedTasks = detachedTasks;
+            return  DetachedTasks;
 		}
 
-		public void load(out Task rootTask, out List<Task> detachedTasks)
-		{
-			rootTask = this.mRootTask;
-			detachedTasks = this.mDetachedTasks;
-		}
-
-		public void CheckForJSONSerialization(bool force)
-		{
+        public void CheckForJSONSerialization(bool force)
+        {
             //Debug.Log((this.mSerialization != null) + "--" + (!this.mSerialization.Equals("")) + "--" + ((this.mRootTask == null && (this.mVariables == null || this.mVariables.Count == 0 || this.mVariables[0] == null)) || force));
-			if (this.mSerialization != null && 
-                !this.mSerialization.Equals("") && 
-                ((this.mRootTask == null && (this.mVariables == null || this.mVariables.Count == 0 || this.mVariables[0] == null)) || force))
-			{
-				DeserializeJSON.Deserialize(this);
-			}
-		}
+            if (this.mSerialization != null &&
+                !this.mSerialization.Equals("") &&
+                (((this.mVariables == null || this.mVariables.Count == 0 || this.mVariables[0] == null)) || force))
+            {
+                DeserializeJSON.Deserialize(this);
+            }
+        }
 
 		public SharedVariable GetVariable(string name)
 		{
@@ -230,11 +173,28 @@ namespace BehaviorDesigner.Runtime
 
 		public override string ToString()
 		{
-			if (this.mOwner == null)
-			{
-				return this.behaviorName;
-			}
-			return string.Format("{0} - {1}", this.Owner.GetOwnerName(), this.behaviorName);
+            return "ToString";
+            //if (this.mOwner == null)
+            //{
+            //    return this.behaviorName;
+            //}
+            //return string.Format("{0} - {1}", this.Owner.GetOwnerName(), this.behaviorName);
 		}
+
+        /// <summary>
+        /// xml 序列化
+        /// </summary>
+        /// <param name="data"></param>
+        public string SerializeXml()
+        {
+            System.Text.StringBuilder str = new System.Text.StringBuilder();
+            for(int i=0;i<DetachedTasks.Count;i++)
+            {
+              str.Append(DetachedTasks[i].SerializeUI());
+            }
+            return str.ToString();
+
+        }
+
 	}
 }

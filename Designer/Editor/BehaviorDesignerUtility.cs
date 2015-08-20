@@ -866,10 +866,10 @@ namespace BehaviorDesigner.Editor
 		public static List<Task> GetAllTasks(BehaviorSource behaviorSource)
 		{
 			List<Task> result = new List<Task>();
-			if (behaviorSource.RootTask != null)
-			{
-				BehaviorDesignerUtility.GetAllTasks(behaviorSource.RootTask, ref result);
-			}
+            //if (behaviorSource.RootTask != null)
+            //{
+            //    BehaviorDesignerUtility.GetAllTasks(behaviorSource.RootTask, ref result);
+            //}
 			if (behaviorSource.DetachedTasks != null)
 			{
 				for (int i = 0; i < behaviorSource.DetachedTasks.Count; i++)
@@ -883,12 +883,11 @@ namespace BehaviorDesigner.Editor
 		private static void GetAllTasks(Task task, ref List<Task> taskList)
 		{
 			taskList.Add(task);
-			ParentTask parentTask;
-			if ((parentTask = (task as ParentTask)) != null && parentTask.Children != null)
+			if (task.Children != null)
 			{
-				for (int i = 0; i < parentTask.Children.Count; i++)
+				for (int i = 0; i < task.Children.Count; i++)
 				{
-					BehaviorDesignerUtility.GetAllTasks(parentTask.Children[i], ref taskList);
+					BehaviorDesignerUtility.GetAllTasks(task.Children[i], ref taskList);
 				}
 			}
 		}
@@ -900,10 +899,10 @@ namespace BehaviorDesigner.Editor
             //{
             //    num++;
             //}
-			if (behaviorSource.RootTask != null)
-			{
-				BehaviorDesignerUtility.TaskCount(behaviorSource.RootTask, ref num);
-			}
+            //if (behaviorSource.RootTask != null)
+            //{
+            //    BehaviorDesignerUtility.TaskCount(behaviorSource.RootTask, ref num);
+            //}
 			if (behaviorSource.DetachedTasks != null)
 			{
 				for (int i = 0; i < behaviorSource.DetachedTasks.Count; i++)
@@ -917,12 +916,11 @@ namespace BehaviorDesigner.Editor
 		private static void TaskCount(Task task, ref int count)
 		{
 			count++;
-			ParentTask parentTask;
-			if ((parentTask = (task as ParentTask)) != null && parentTask.Children != null)
+            if (task.Children != null)
 			{
-				for (int i = 0; i < parentTask.Children.Count; i++)
+                for (int i = 0; i < task.Children.Count; i++)
 				{
-					BehaviorDesignerUtility.TaskCount(parentTask.Children[i], ref count);
+                    BehaviorDesignerUtility.TaskCount(task.Children[i], ref count);
 				}
 			}
 		}

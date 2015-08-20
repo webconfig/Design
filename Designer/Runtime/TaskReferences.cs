@@ -11,10 +11,10 @@ namespace BehaviorDesigner.Runtime
 	{
 		public static void CheckReferences(BehaviorSource behaviorSource)
 		{
-			if (behaviorSource.RootTask != null)
-			{
-				TaskReferences.CheckReferences(behaviorSource, behaviorSource.RootTask);
-			}
+            //if (behaviorSource.RootTask != null)
+            //{
+            //    TaskReferences.CheckReferences(behaviorSource, behaviorSource.RootTask);
+            //}
 			if (behaviorSource.DetachedTasks != null)
 			{
 				for (int i = 0; i < behaviorSource.DetachedTasks.Count; i++)
@@ -24,67 +24,67 @@ namespace BehaviorDesigner.Runtime
 			}
 		}
 
-		private static void CheckReferences(BehaviorSource behaviorSource, Task task)
-		{
-			FieldInfo[] fields = task.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			for (int i = 0; i < fields.Length; i++)
-			{
-				if (!fields[i].FieldType.IsArray && (fields[i].FieldType.Equals(typeof(Task)) || fields[i].FieldType.IsSubclassOf(typeof(Task))))
-				{
-					Task task2 = fields[i].GetValue(task) as Task;
-					if (task2 != null)
-					{
-						Task task3 = TaskReferences.FindReferencedTask(behaviorSource, task2);
-						if (task3 != null)
-						{
-							fields[i].SetValue(task, task3);
-						}
-					}
-				}
-				else if (fields[i].FieldType.IsArray && (fields[i].FieldType.GetElementType().Equals(typeof(Task)) || fields[i].FieldType.GetElementType().IsSubclassOf(typeof(Task))))
-				{
-					Task[] array = fields[i].GetValue(task) as Task[];
-					if (array != null)
-					{
-						IList list = Activator.CreateInstance(typeof(List<>).MakeGenericType(new Type[]
+        private static void CheckReferences(BehaviorSource behaviorSource, Task task)
+        {
+            FieldInfo[] fields = task.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                if (!fields[i].FieldType.IsArray && (fields[i].FieldType.Equals(typeof(Task)) || fields[i].FieldType.IsSubclassOf(typeof(Task))))
+                {
+                    Task task2 = fields[i].GetValue(task) as Task;
+                    if (task2 != null)
+                    {
+                        Task task3 = TaskReferences.FindReferencedTask(behaviorSource, task2);
+                        if (task3 != null)
+                        {
+                            fields[i].SetValue(task, task3);
+                        }
+                    }
+                }
+                else if (fields[i].FieldType.IsArray && (fields[i].FieldType.GetElementType().Equals(typeof(Task)) || fields[i].FieldType.GetElementType().IsSubclassOf(typeof(Task))))
+                {
+                    Task[] array = fields[i].GetValue(task) as Task[];
+                    if (array != null)
+                    {
+                        IList list = Activator.CreateInstance(typeof(List<>).MakeGenericType(new Type[]
 						{
 							fields[i].FieldType.GetElementType()
 						})) as IList;
-						for (int j = 0; j < array.Length; j++)
-						{
-							Task task4 = TaskReferences.FindReferencedTask(behaviorSource, array[j]);
-							if (task4 != null)
-							{
-								list.Add(task4);
-							}
-						}
-						Array array2 = Array.CreateInstance(fields[i].FieldType.GetElementType(), list.Count);
-						list.CopyTo(array2, 0);
-						fields[i].SetValue(task, array2);
-					}
-				}
-			}
-			if (task.GetType().IsSubclassOf(typeof(ParentTask)))
-			{
-				ParentTask parentTask = task as ParentTask;
-				if (parentTask.Children != null)
-				{
-					for (int k = 0; k < parentTask.Children.Count; k++)
-					{
-						TaskReferences.CheckReferences(behaviorSource, parentTask.Children[k]);
-					}
-				}
-			}
-		}
+                        for (int j = 0; j < array.Length; j++)
+                        {
+                            Task task4 = TaskReferences.FindReferencedTask(behaviorSource, array[j]);
+                            if (task4 != null)
+                            {
+                                list.Add(task4);
+                            }
+                        }
+                        Array array2 = Array.CreateInstance(fields[i].FieldType.GetElementType(), list.Count);
+                        list.CopyTo(array2, 0);
+                        fields[i].SetValue(task, array2);
+                    }
+                }
+            }
+            //if (task.GetType().IsSubclassOf(typeof(ParentTask)))
+            //{
+            //    ParentTask parentTask = task as ParentTask;
+            if (task.Children != null)
+            {
+                for (int k = 0; k < task.Children.Count; k++)
+                {
+                    TaskReferences.CheckReferences(behaviorSource, task.Children[k]);
+                }
+            }
+            //}
+        }
 
 		private static Task FindReferencedTask(BehaviorSource behaviorSource, Task referencedTask)
 		{
 			int iD = referencedTask.ID;
 			Task result;
-			if (behaviorSource.RootTask != null && (result = TaskReferences.FindReferencedTask(behaviorSource.RootTask, iD)) != null)
-			{
-				return result;
-			}
+            //if (behaviorSource.RootTask != null && (result = TaskReferences.FindReferencedTask(behaviorSource.RootTask, iD)) != null)
+            //{
+            //    return result;
+            //}
 			if (behaviorSource.DetachedTasks != null)
 			{
 				for (int i = 0; i < behaviorSource.DetachedTasks.Count; i++)
@@ -98,29 +98,29 @@ namespace BehaviorDesigner.Runtime
 			return null;
 		}
 
-		private static Task FindReferencedTask(Task task, int referencedTaskID)
-		{
-			if (task.ID == referencedTaskID)
-			{
-				return task;
-			}
-			if (task.GetType().IsSubclassOf(typeof(ParentTask)))
-			{
-				ParentTask parentTask = task as ParentTask;
-				if (parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						Task result;
-						if ((result = TaskReferences.FindReferencedTask(parentTask.Children[i], referencedTaskID)) != null)
-						{
-							return result;
-						}
-					}
-				}
-			}
-			return null;
-		}
+        private static Task FindReferencedTask(Task task, int referencedTaskID)
+        {
+            if (task.ID == referencedTaskID)
+            {
+                return task;
+            }
+            //if (task.GetType().IsSubclassOf(typeof(ParentTask)))
+            //{
+            //    ParentTask parentTask = task as ParentTask;
+            if (task.Children != null)
+            {
+                for (int i = 0; i < task.Children.Count; i++)
+                {
+                    Task result;
+                    if ((result = TaskReferences.FindReferencedTask(task.Children[i], referencedTaskID)) != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+            //}
+            return null;
+        }
 
 		public static void CheckReferences(Behavior behavior, List<Task> taskList)
 		{

@@ -6,7 +6,7 @@ namespace BehaviorDesigner.Runtime.Tasks
     // cannot be used within the behavior tree.
     [HelpURL("http://www.opsive.com/assets/BehaviorDesigner/documentation.php?id=23")]
     [TaskIcon("{SkinColor}EntryIcon.png")]
-    public class EntryTask : ParentTask
+    public class EntryTask : Task
     {
         //public override int MaxChildren()
         //{

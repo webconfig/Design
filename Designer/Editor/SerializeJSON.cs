@@ -9,6 +9,9 @@ using UnityEngine;
 
 namespace BehaviorDesigner.Editor
 {
+    /// <summary>
+    /// 序列化
+    /// </summary>
 	public class SerializeJSON : UnityEngine.Object
 	{
         /// <summary>
@@ -19,70 +22,40 @@ namespace BehaviorDesigner.Editor
         /// <returns></returns>
 		public static string Serialize(BehaviorSource origBehaviorSource, BehaviorSource newBehaviorSource = null)
 		{
-			origBehaviorSource.CheckForJSONSerialization(false);
-			if (newBehaviorSource == null)
-			{
-				newBehaviorSource = origBehaviorSource;
-			}
-			newBehaviorSource.Owner.ClearUnityObjects();
-			int num = 0;
-			Dictionary<string, object> dictionary = new Dictionary<string, object>();
-			if (origBehaviorSource.RootTask != null)
-            {//序列化根节点
-				dictionary.Add("RootTask", SerializeJSON.SerializeTask(origBehaviorSource.RootTask, newBehaviorSource.Owner, ref num));
-			}
-			if (origBehaviorSource.DetachedTasks != null && origBehaviorSource.DetachedTasks.Count > 0)
-            {//序列化未连接的节点
-				Dictionary<string, object>[] array = new Dictionary<string, object>[origBehaviorSource.DetachedTasks.Count];
-				for (int i = 0; i < origBehaviorSource.DetachedTasks.Count; i++)
-				{
-					array[i] = SerializeJSON.SerializeTask(origBehaviorSource.DetachedTasks[i], newBehaviorSource.Owner, ref num);
-				}
-				dictionary.Add("DetachedTasks", array);
-			}
-			if (origBehaviorSource.Variables != null && origBehaviorSource.Variables.Count > 0)
-            {//序列化节点里面的变量
-				Dictionary<string, object>[] array2 = new Dictionary<string, object>[origBehaviorSource.Variables.Count];
-				for (int j = 0; j < origBehaviorSource.Variables.Count; j++)
-				{
-					array2[j] = SerializeJSON.SerializeVariable(origBehaviorSource.Variables[j], newBehaviorSource.Owner);
-				}
-				dictionary.Add("Variables", array2);
-			}
-			dictionary.Add("TaskCount", num);
-			string str= Json.Serialize(dictionary);
-            //Debug.Log(str);
-            return str;
-            /*
-{
-  "RootTask":
-          {
-            "ObjectType":"BehaviorDesigner.Runtime.Tasks.EntryTask",
-            "NodeData":
-                       {
-                          "Position":"(391.0, 30.0)",
-                          "FriendlyName":"Entry"
-                       },
-            "ID":0,
-            "Instant":true,
-            "Children":
-                        [
-                           {
-                             "ObjectType":"BehaviorDesigner.Runtime.Tasks.Wait",
-                             "NodeData":
-                                          {
-                                              "Position":"(391.0, 150.0)",
-                                              "FriendlyName":"Wait"
-                                          },
-                              "ID":1,
-                              "Instant":true,
-                              "waitTime":1
-                           }
-                       ]
-         },
- "TaskCount":2
-}
-             */
+            return "";
+            //origBehaviorSource.CheckForJSONSerialization(false);
+            //if (newBehaviorSource == null)
+            //{
+            //    newBehaviorSource = origBehaviorSource;
+            //}
+            ////newBehaviorSource.Owner.ClearUnityObjects();
+            //int num = 0;
+            //Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            ////if (origBehaviorSource.RootTask != null)
+            ////{//序列化根节点
+            ////    dictionary.Add("RootTask", SerializeJSON.SerializeTask(origBehaviorSource.RootTask, newBehaviorSource.Owner, ref num));
+            ////}
+            //if (origBehaviorSource.DetachedTasks != null && origBehaviorSource.DetachedTasks.Count > 0)
+            //{//序列化未连接的节点
+            //    Dictionary<string, object>[] array = new Dictionary<string, object>[origBehaviorSource.DetachedTasks.Count];
+            //    for (int i = 0; i < origBehaviorSource.DetachedTasks.Count; i++)
+            //    {
+            //        array[i] = SerializeJSON.SerializeTask(origBehaviorSource.DetachedTasks[i], newBehaviorSource.Owner, ref num);
+            //    }
+            //    dictionary.Add("DetachedTasks", array);
+            //}
+            //if (origBehaviorSource.Variables != null && origBehaviorSource.Variables.Count > 0)
+            //{//序列化节点里面的变量
+            //    Dictionary<string, object>[] array2 = new Dictionary<string, object>[origBehaviorSource.Variables.Count];
+            //    for (int j = 0; j < origBehaviorSource.Variables.Count; j++)
+            //    {
+            //        array2[j] = SerializeJSON.SerializeVariable(origBehaviorSource.Variables[j], newBehaviorSource.Owner);
+            //    }
+            //    dictionary.Add("Variables", array2);
+            //}
+            //dictionary.Add("TaskCount", num);
+            //string str= Json.Serialize(dictionary);
+            //return str;
         }
 
         /// <summary>
@@ -92,30 +65,28 @@ namespace BehaviorDesigner.Editor
         /// <param name="behavior"></param>
         /// <param name="taskCount"></param>
         /// <returns></returns>
-		private static Dictionary<string, object> SerializeTask(Task task, IBehavior behavior, ref int taskCount)
-		{
-			Dictionary<string, object> dictionary = new Dictionary<string, object>();
-			dictionary.Add("ObjectType", task.GetType());
-			dictionary.Add("NodeData", task.NodeData.serialize());
-			dictionary.Add("ID", task.ID);
-			dictionary.Add("Instant", task.IsInstant);
-			taskCount++;
-			SerializeJSON.SerializeFields(task, ref dictionary, behavior);
-			if (task.GetType().IsSubclassOf(typeof(ParentTask)))
-            {//序列化子节点
-				ParentTask parentTask = task as ParentTask;
-				if (parentTask.Children != null && parentTask.Children.Count > 0)
-				{
-					Dictionary<string, object>[] array = new Dictionary<string, object>[parentTask.Children.Count];
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						array[i] = SerializeJSON.SerializeTask(parentTask.Children[i], behavior, ref taskCount);
-					}
-					dictionary.Add("Children", array);
-				}
-			}
-			return dictionary;
-		}
+        private static Dictionary<string, object> SerializeTask(Task task, IBehavior behavior, ref int taskCount)
+        {
+            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            dictionary.Add("ObjectType", task.GetType());
+            dictionary.Add("NodeData", task.NodeData.serialize());
+            dictionary.Add("ID", task.ID);
+            dictionary.Add("Instant", task.IsInstant);
+            taskCount++;
+            SerializeJSON.SerializeFields(task, ref dictionary, behavior);
+
+            if (task.Children != null && task.Children.Count > 0)
+            {
+                Dictionary<string, object>[] array = new Dictionary<string, object>[task.Children.Count];
+                for (int i = 0; i < task.Children.Count; i++)
+                {
+                    array[i] = SerializeJSON.SerializeTask(task.Children[i], behavior, ref taskCount);
+                }
+                dictionary.Add("Children", array);
+            }
+
+            return dictionary;
+        }
 
         /// <summary>
         /// 序列化变量
@@ -155,7 +126,7 @@ namespace BehaviorDesigner.Editor
 			FieldInfo[] fields = obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 			for (int i = 0; i < fields.Length; i++)
 			{
-				if (fields[i].GetCustomAttributes(typeof(NonSerializedAttribute), false).Length <= 0 && ((!fields[i].IsPrivate && !fields[i].IsFamily) || fields[i].GetCustomAttributes(typeof(SerializeField), false).Length != 0) && (!obj.GetType().IsSubclassOf(typeof(ParentTask)) || !fields[i].Name.Equals("children")) && fields[i].GetValue(obj) != null)
+				if (fields[i].GetCustomAttributes(typeof(NonSerializedAttribute), false).Length <= 0 && ((!fields[i].IsPrivate && !fields[i].IsFamily) || fields[i].GetCustomAttributes(typeof(SerializeField), false).Length != 0) && (!fields[i].Name.Equals("children")) && fields[i].GetValue(obj) != null)
 				{
 					if (fields[i].FieldType.IsArray)
 					{

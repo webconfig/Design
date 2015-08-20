@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace BehaviorDesigner.Runtime
 {
+    /// <summary>
+    /// 技能
+    /// </summary>
 	[Serializable]
 	public  class Behavior : MonoBehaviour, IBehavior
 	{
@@ -154,12 +157,12 @@ namespace BehaviorDesigner.Runtime
             //    this.entryTask = null;
             //    result = true;
             //}
-			if (this.rootTask != null)
-			{
-				this.mBehaviorSource.RootTask = this.rootTask;
-				this.rootTask = null;
-				result = true;
-			}
+            //if (this.rootTask != null)
+            //{
+            //    this.mBehaviorSource.RootTask = this.rootTask;
+            //    this.rootTask = null;
+            //    result = true;
+            //}
 			if (this.detachedTasks != null && this.detachedTasks.Count > 0)
 			{
 				this.mBehaviorSource.DetachedTasks = this.detachedTasks;
@@ -188,7 +191,7 @@ namespace BehaviorDesigner.Runtime
 				this.mBehaviorSource.behaviorDescription = this.behaviorDescription;
 				this.behaviorDescription = "";
 			}
-			this.mBehaviorSource.Owner = this;
+            //this.mBehaviorSource.Owner = this;
 			return result;
 		}
 
@@ -211,12 +214,12 @@ namespace BehaviorDesigner.Runtime
         /// </summary>
 		public void EnableBehavior()
 		{
-			this.mBehaviorSource.CheckForJSONSerialization(false);
-			if (this.mBehaviorSource.RootTask != null || this.externalBehavior != null)
-			{
-				Behavior.CreateBehaviorManager();//创建行为树管理类
-				BehaviorManager.instance.enableBehavior(this);//运行行为树
-			}
+            //this.mBehaviorSource.CheckForJSONSerialization(false);
+            //if (this.mBehaviorSource.RootTask != null || this.externalBehavior != null)
+            //{
+            //    Behavior.CreateBehaviorManager();//创建行为树管理类
+            //    BehaviorManager.instance.enableBehavior(this);//运行行为树
+            //}
 		}
 
 		[Obsolete("Behavior.disableBehavior has been deprectead. Use Behavior.DisableBehavior.")]
@@ -267,53 +270,53 @@ namespace BehaviorDesigner.Runtime
 			this.mBehaviorSource.SetVariable(name, item);
 		}
 
-		public void OnCollisionEnter(Collision collision)
-		{
-			if (BehaviorManager.instance != null)
-			{
-				BehaviorManager.instance.BehaviorOnCollisionEnter(collision, this);
-			}
-		}
+        //public void OnCollisionEnter(Collision collision)
+        //{
+        //    if (BehaviorManager.instance != null)
+        //    {
+        //        BehaviorManager.instance.BehaviorOnCollisionEnter(collision, this);
+        //    }
+        //}
 
-		public void OnCollisionExit(Collision collision)
-		{
-			if (BehaviorManager.instance != null)
-			{
-				BehaviorManager.instance.BehaviorOnCollisionExit(collision, this);
-			}
-		}
+        //public void OnCollisionExit(Collision collision)
+        //{
+        //    if (BehaviorManager.instance != null)
+        //    {
+        //        BehaviorManager.instance.BehaviorOnCollisionExit(collision, this);
+        //    }
+        //}
 
-		public void OnCollisionStay(Collision collision)
-		{
-			if (BehaviorManager.instance != null)
-			{
-				BehaviorManager.instance.BehaviorOnCollisionStay(collision, this);
-			}
-		}
+        //public void OnCollisionStay(Collision collision)
+        //{
+        //    if (BehaviorManager.instance != null)
+        //    {
+        //        BehaviorManager.instance.BehaviorOnCollisionStay(collision, this);
+        //    }
+        //}
 
-		public void OnTriggerEnter(Collider other)
-		{
-			if (BehaviorManager.instance != null)
-			{
-				BehaviorManager.instance.BehaviorOnTriggerEnter(other, this);
-			}
-		}
+        //public void OnTriggerEnter(Collider other)
+        //{
+        //    if (BehaviorManager.instance != null)
+        //    {
+        //        BehaviorManager.instance.BehaviorOnTriggerEnter(other, this);
+        //    }
+        //}
 
-		public void OnTriggerExit(Collider other)
-		{
-			if (BehaviorManager.instance != null)
-			{
-				BehaviorManager.instance.BehaviorOnTriggerExit(other, this);
-			}
-		}
+        //public void OnTriggerExit(Collider other)
+        //{
+        //    if (BehaviorManager.instance != null)
+        //    {
+        //        BehaviorManager.instance.BehaviorOnTriggerExit(other, this);
+        //    }
+        //}
 
-		public void OnTriggerStay(Collider other)
-		{
-			if (BehaviorManager.instance != null)
-			{
-				BehaviorManager.instance.BehaviorOnTriggerStay(other, this);
-			}
-		}
+        //public void OnTriggerStay(Collider other)
+        //{
+        //    if (BehaviorManager.instance != null)
+        //    {
+        //        BehaviorManager.instance.BehaviorOnTriggerStay(other, this);
+        //    }
+        //}
 
 		public void StartTaskCoroutine(Task task, string methodName)
 		{

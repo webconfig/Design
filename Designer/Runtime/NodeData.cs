@@ -3,18 +3,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Xml;
 using UnityEngine;
 
 namespace BehaviorDesigner.Runtime
 {
 	[Serializable]
-	public class NodeData
+    public class DesignerNodeData
 	{
 		[SerializeField]
 		private object nodeDesigner;
-
-		[SerializeField]
-		private Vector2 position;
 
 		[SerializeField]
 		private string friendlyName = "";
@@ -57,17 +55,10 @@ namespace BehaviorDesigner.Runtime
 			}
 		}
 
-		public Vector2 Position
-		{
-			get
-			{
-				return this.position;
-			}
-			set
-			{
-				this.position = value;
-			}
-		}
+        /// <summary>
+        /// UI зјБъ
+        /// </summary>
+        public Vector2 Position;
 
 		public string FriendlyName
 		{
@@ -201,10 +192,10 @@ namespace BehaviorDesigner.Runtime
 			}
 		}
 
-		public void copyFrom(NodeData nodeData, Task task)
+        public void copyFrom(DesignerNodeData nodeData, Task task)
 		{
 			this.nodeDesigner = nodeData.NodeDesigner;
-			this.position = nodeData.Position;
+			Position = nodeData.Position;
 			this.friendlyName = nodeData.FriendlyName;
 			this.comment = nodeData.Comment;
 			this.isBreakpoint = nodeData.IsBreakpoint;
@@ -251,36 +242,118 @@ namespace BehaviorDesigner.Runtime
 			}
 		}
 
-		public Dictionary<string, object> serialize()
+		
+	
+
+		private static Vector2 StringToVector2(string vector2String)
 		{
-			Dictionary<string, object> dictionary = new Dictionary<string, object>();
-			dictionary.Add("Position", this.position);
-			if (this.friendlyName.Length > 0)
+			string[] array = vector2String.Substring(1, vector2String.Length - 2).Split(new char[]
 			{
-				dictionary.Add("FriendlyName", this.friendlyName);
-			}
-			if (this.comment.Length > 0)
-			{
-				dictionary.Add("Comment", this.comment);
-			}
-			if (this.collapsed)
-			{
-				dictionary.Add("Collapsed", this.collapsed);
-			}
-			if (this.disabled)
-			{
-				dictionary.Add("Disabled", this.disabled);
-			}
-			if (this.watchedFieldNames != null && this.watchedFieldNames.Count > 0)
-			{
-				dictionary.Add("WatchedFields", this.watchedFieldNames);
-			}
-			return dictionary;
+				','
+			});
+			return new Vector3(float.Parse(array[0]), float.Parse(array[1]));
 		}
 
-		public void deserialize(Dictionary<string, object> dict, Task task)
+
+
+        //========new ===================
+
+        public void deserialize_ui(XmlNode node)
+        {
+            Position = SerializeHelp.GetXmlAttrVector2(node, "Position");
+
+           friendlyName = node.Attributes["FriendlyName"].Value;// (string)dict["FriendlyName"];
+           if (node.Attributes["Comment"] != null)
+           {
+               Comment = node.Attributes["Comment"].Value;
+           }
+           if (node.Attributes["Collapsed"] != null)
+           {
+               Collapsed = node.Attributes["Collapsed"].Value=="true";
+           }
+           if (node.Attributes["Disabled"] != null)
+           {
+               Disabled = node.Attributes["Disabled"].Value == "true";
+           } 
+           //if (node.Attributes["WatchedFields"] != null)
+           //{
+           //    Disabled = node.Attributes["Disabled"].Value == "true";
+           //}
+           // if (dict.ContainsKey("WatchedFields"))
+           // {
+           //     this.watchedFieldNames = new List<string>();
+           //     this.watchedFields = new List<FieldInfo>();
+           //     IList list = dict["WatchedFields"] as IList;
+           //     for (int i = 0; i < list.Count; i++)
+           //     {
+           //         FieldInfo field = task.GetType().GetField((string)list[i]);
+           //         if (field != null)
+           //         {
+           //             this.watchedFieldNames.Add(field.Name);
+           //             this.watchedFields.Add(field);
+           //         }
+           //     }
+           // }
+        }
+
+
+
+        public void serialize_ui(Dictionary<string, string> dictionary)
+        {
+            dictionary.Add("Position", Position.ToString());
+            if (this.friendlyName.Length > 0)
+            {
+                dictionary.Add("FriendlyName", this.friendlyName);
+            }
+            if (this.comment.Length > 0)
+            {
+                dictionary.Add("Comment", this.comment);
+            }
+            if (this.collapsed)
+            {
+                dictionary.Add("Collapsed", this.collapsed.ToString());
+            }
+            if (this.disabled)
+            {
+                dictionary.Add("Disabled", this.disabled.ToString());
+            }
+            if (this.watchedFieldNames != null && this.watchedFieldNames.Count > 0)
+            {
+                dictionary.Add("WatchedFields", SerializeHelp.ToString(this.watchedFieldNames));
+            }
+        }
+
+        //======old===========
+        public Dictionary<string, object> serialize()
+        {
+            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            dictionary.Add("Position", Position);
+            if (this.friendlyName.Length > 0)
+            {
+                dictionary.Add("FriendlyName", this.friendlyName);
+            }
+            if (this.comment.Length > 0)
+            {
+                dictionary.Add("Comment", this.comment);
+            }
+            if (this.collapsed)
+            {
+                dictionary.Add("Collapsed", this.collapsed);
+            }
+            if (this.disabled)
+            {
+                dictionary.Add("Disabled", this.disabled);
+            }
+            if (this.watchedFieldNames != null && this.watchedFieldNames.Count > 0)
+            {
+                dictionary.Add("WatchedFields", this.watchedFieldNames);
+            }
+            return dictionary;
+        }
+
+        	public void deserialize(Dictionary<string, object> dict, Task task)
 		{
-			this.position = NodeData.StringToVector2((string)dict["Position"]);
+            Position = DesignerNodeData.StringToVector2((string)dict["Position"]);
 			if (dict.ContainsKey("FriendlyName"))
 			{
 				this.friendlyName = (string)dict["FriendlyName"];
@@ -312,15 +385,6 @@ namespace BehaviorDesigner.Runtime
 					}
 				}
 			}
-		}
-
-		private static Vector2 StringToVector2(string vector2String)
-		{
-			string[] array = vector2String.Substring(1, vector2String.Length - 2).Split(new char[]
-			{
-				','
-			});
-			return new Vector3(float.Parse(array[0]), float.Parse(array[1]));
 		}
 	}
 }

@@ -4,15 +4,19 @@ using System.Collections.Generic;
 
 namespace BehaviorDesigner.Editor
 {
+    /// <summary>
+    /// ×ÖÄ¸Ë³ÐòÅÅÐò
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
 	public class AlphanumComparator<T> : IComparer<T>
 	{
 		public int Compare(T x, T y)
 		{
-			string text;
+            string text = "";
 			if (x.GetType().IsSubclassOf(typeof(Type)))
 			{
 				Type type = x as Type;
-				text = this.typePrefix(type) + "/";
+				//text = this.typePrefix(type) + "/";
 				TaskCategoryAttribute[] array;
 				if ((array = (type.GetCustomAttributes(typeof(TaskCategoryAttribute), false) as TaskCategoryAttribute[])).Length > 0)
 				{
@@ -28,11 +32,11 @@ namespace BehaviorDesigner.Editor
 			{
 				return 0;
 			}
-			string text2;
+			string text2="";
 			if (y.GetType().IsSubclassOf(typeof(Type)))
 			{
 				Type type2 = y as Type;
-				text2 = this.typePrefix(type2) + "/";
+				//text2 = this.typePrefix(type2) + "/";
 				TaskCategoryAttribute[] array2;
 				if ((array2 = (type2.GetCustomAttributes(typeof(TaskCategoryAttribute), false) as TaskCategoryAttribute[])).Length > 0)
 				{
@@ -101,23 +105,6 @@ namespace BehaviorDesigner.Editor
 				}
 			}
 			return length - length2;
-		}
-
-		private string typePrefix(Type t)
-		{
-			if (t.IsSubclassOf(typeof(BehaviorDesigner.Runtime.Tasks.Action)))
-			{
-				return "Action";
-			}
-			if (t.IsSubclassOf(typeof(Composite)))
-			{
-				return "Composite";
-			}
-			if (t.IsSubclassOf(typeof(Conditional)))
-			{
-				return "Conditional";
-			}
-			return "Decorator";
 		}
 	}
 }

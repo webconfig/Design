@@ -1,264 +1,24 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BehaviorDesigner.Runtime.Tasks
 {
 	public abstract class Task : ScriptableObject
 	{
-		protected Animation animation;
-
-		protected AudioSource audio;
-
-		protected Camera camera;
-
-		protected Collider collider;
-
-		protected Collider2D collider2D;
-
-		protected ConstantForce constantForce;
-
-		protected GameObject gameObject;
-
-		protected GUIText guiText;
-
-		protected GUITexture guiTexture;
-
-		protected HingeJoint hingeJoint;
-
-		protected Light light;
-
-		protected NetworkView networkView;
-
-		protected ParticleEmitter particleEmitter;
-
-		protected ParticleSystem particleSystem;
-
-		protected Renderer renderer;
-
-		protected Rigidbody rigidbody;
-
-		protected Rigidbody2D rigidbody2D;
-
-		protected Transform transform;
-
-		[SerializeField]
-		private NodeData nodeData;
-
-		[SerializeField]
-		private Behavior owner;
-
-		[SerializeField]
-		private int id = -1;
-
-		[SerializeField]
-		private bool instant = true;
-
-		private int referenceID = -1;
-
-		public Animation Animation
-		{
-			set
-			{
-				this.animation = value;
-			}
-		}
-
-		public AudioSource Audio
-		{
-			set
-			{
-				this.audio = value;
-			}
-		}
-
-		public Camera Camera
-		{
-			set
-			{
-				this.camera = value;
-			}
-		}
-
-		public Collider Collider
-		{
-			set
-			{
-				this.collider = value;
-			}
-		}
-
-		public Collider2D Collider2D
-		{
-			set
-			{
-				this.collider2D = value;
-			}
-		}
-
-		public ConstantForce ConstantForce
-		{
-			set
-			{
-				this.constantForce = value;
-			}
-		}
-
-		public GameObject GameObject
-		{
-			set
-			{
-				this.gameObject = value;
-			}
-		}
-
-		public GUIText GUIText
-		{
-			set
-			{
-				this.guiText = value;
-			}
-		}
-
-		public GUITexture GUITexture
-		{
-			set
-			{
-				this.guiTexture = value;
-			}
-		}
-
-		public HingeJoint HingeJoint
-		{
-			set
-			{
-				this.hingeJoint = value;
-			}
-		}
-
-		public Light Light
-		{
-			set
-			{
-				this.light = value;
-			}
-		}
-
-		public NetworkView NetworkView
-		{
-			set
-			{
-				this.networkView = value;
-			}
-		}
-
-		public ParticleEmitter ParticleEmitter
-		{
-			set
-			{
-				this.particleEmitter = value;
-			}
-		}
-
-		public ParticleSystem ParticleSystem
-		{
-			set
-			{
-				this.particleSystem = value;
-			}
-		}
-
-		public Renderer Renderer
-		{
-			set
-			{
-				this.renderer = value;
-			}
-		}
-
-		public Rigidbody Rigidbody
-		{
-			set
-			{
-				this.rigidbody = value;
-			}
-		}
-
-		public Rigidbody2D Rigidbody2D
-		{
-			set
-			{
-				this.rigidbody2D = value;
-			}
-		}
-
-		public Transform Transform
-		{
-			set
-			{
-				this.transform = value;
-			}
-		}
-
-		public NodeData NodeData
-		{
-			get
-			{
-				return this.nodeData;
-			}
-			set
-			{
-				this.nodeData = value;
-			}
-		}
-
-		public Behavior Owner
-		{
-			get
-			{
-				return this.owner;
-			}
-			set
-			{
-				this.owner = value;
-			}
-		}
-
-		public int ID
-		{
-			get
-			{
-				return this.id;
-			}
-			set
-			{
-				this.id = value;
-			}
-		}
-
-		public bool IsInstant
-		{
-			get
-			{
-				return this.instant;
-			}
-			set
-			{
-				this.instant = value;
-			}
-		}
-
-		public int ReferenceID
-		{
-			get
-			{
-				return this.referenceID;
-			}
-			set
-			{
-				this.referenceID = value;
-			}
-		}
+        [System.NonSerialized]
+        public DesignerNodeData NodeData;
+        [System.NonSerialized]
+        public Behavior Owner;
+        [System.NonSerialized]
+        public int ID;
+        [System.NonSerialized]
+        public bool IsInstant;
+        [System.NonSerialized]
+        public int ReferenceID;
+         [System.NonSerialized]
+        public List<Task> Children;
 
 		public virtual void OnAwake()
 		{
@@ -294,57 +54,44 @@ namespace BehaviorDesigner.Runtime.Tasks
 		{
 		}
 
-		public virtual void OnSceneGUI()
-		{
-		}
 
-		protected void StartCoroutine(string methodName)
-		{
-			this.Owner.StartTaskCoroutine(this, methodName);
-		}
+        public void AddChild(Task child, int index)
+        {
+            if (Children == null)
+            {
+                Children = new List<Task>();
+            }
+            Children.Insert(index, child);
+        }
 
-		protected void StartCoroutine(IEnumerator routine)
-		{
-			this.Owner.StartCoroutine(routine);
-		}
+        public void ReplaceAddChild(Task child, int index)
+        {
+            if (Children != null && index < Children.Count)
+            {
+                Children[index] = child;
+                return;
+            }
+            this.AddChild(child, index);
+        }
 
-		protected void StartCoroutine(string methodName, object value)
-		{
-			this.Owner.StartTaskCoroutine(this, methodName, value);
-		}
 
-		protected void StopCoroutine(string methodName)
-		{
-			this.Owner.StopTaskCoroutine(methodName);
-		}
+        /// <summary>
+        /// 序列化节点内容
+        /// </summary>
+        /// <returns></returns>
+        public virtual string Serialize()
+        {
+            return string.Empty;
+        }
 
-		protected void StopAllCoroutines()
-		{
-			this.Owner.StopAllTaskCoroutines();
-		}
 
-		public virtual void OnCollisionEnter(Collision collision)
-		{
-		}
-
-		public virtual void OnCollisionExit(Collision collision)
-		{
-		}
-
-		public virtual void OnCollisionStay(Collision collision)
-		{
-		}
-
-		public virtual void OnTriggerEnter(Collider other)
-		{
-		}
-
-		public virtual void OnTriggerExit(Collider other)
-		{
-		}
-
-		public virtual void OnTriggerStay(Collider other)
-		{
-		}
+        /// <summary>
+        /// 序列化节点UI
+        /// </summary>
+        /// <returns></returns>
+        public virtual string SerializeUI()
+        {
+            return string.Empty;
+        }
 	}
 }
