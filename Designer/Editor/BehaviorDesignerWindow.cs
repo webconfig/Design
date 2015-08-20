@@ -650,8 +650,6 @@ namespace BehaviorDesigner.Editor
             //}
 		}
 
-       
-
         //private void addBehavior()
         //{
         //    if (EditorApplication.isPlaying || EditorApplication.isCompiling)
@@ -735,7 +733,6 @@ namespace BehaviorDesigner.Editor
 			return 0;
 		}
       
-
         /// <summary>
         ///  是否正在更新任务
         /// </summary>
@@ -1462,8 +1459,6 @@ namespace BehaviorDesigner.Editor
 			return new Rect(num, num3, num2 - num, num4 - num3);
 		}
 
-		
-
 		public void ClearGraph()
 		{
 			this.mGraphDesigner.clear();
@@ -1472,7 +1467,6 @@ namespace BehaviorDesigner.Editor
 			this.UpdateSelectDatas();
 			base.Repaint();
         }
-
 
         #region GUI
         /// <summary>
@@ -1753,7 +1747,6 @@ namespace BehaviorDesigner.Editor
             //}
             //return false;
         }
-
 
         /// <summary>
         /// 绘制作图区域
