@@ -7,7 +7,6 @@ using System.Xml;
 /// <summary>
 /// 时间控制器模块
 /// </summary>
-[System.Serializable]
 public class Skill_Time : Skill_Base
 {
     /// <summary>
@@ -75,69 +74,69 @@ public class Skill_Time : Skill_Base
         over = false;
     }
 
-    /// <summary>
-    /// 更新
-    /// </summary>
-    public override void Update(object data)
-    {
-        if (ready_end) { return; }
-        //if (ID == 903)
-        //{
-        //    //Debug.Log("state:" + (State != SkillState.Over));
-        //}
-        if (State != SkillState.Over)
-        {
-            if (!over)
-            {
-                if (!run)
-                {
-                    time_run = Time.time;
-                    if ((time_run-time_begin) >= Dealy)
-                    {//运行
-                        run = true;
-                        if (TimeDealy != null)
-                        {
-                            TimeDealy();
-                        }
-                        time_begin = Time.time;
-                        time_run = time_begin;
-                    }
-                }
-                else
-                {
-                    if (LifeTime > 0)
-                    {
-                        time_run = Time.time;
-                        _lifetime = time_run - time_begin;
-                        if (_lifetime >= LifeTime)
-                        {//超过生命周期
-                            //Debug.Log("========超过生命周期========");
-                            if (TimeLifeTime != null)
-                            {
-                                TimeLifeTime();
-                                over = true;
-                            }
-                        }
-                        else if (CD > 0)
-                        {
+    ///// <summary>
+    ///// 更新
+    ///// </summary>
+    //public override void Update(object data)
+    //{
+    //    if (ready_end) { return; }
+    //    //if (ID == 903)
+    //    //{
+    //    //    //Debug.Log("state:" + (State != SkillState.Over));
+    //    //}
+    //    if (State != SkillState.Over)
+    //    {
+    //        if (!over)
+    //        {
+    //            if (!run)
+    //            {
+    //                time_run = Time.time;
+    //                if ((time_run-time_begin) >= Dealy)
+    //                {//运行
+    //                    run = true;
+    //                    if (TimeDealy != null)
+    //                    {
+    //                        TimeDealy();
+    //                    }
+    //                    time_begin = Time.time;
+    //                    time_run = time_begin;
+    //                }
+    //            }
+    //            else
+    //            {
+    //                if (LifeTime > 0)
+    //                {
+    //                    time_run = Time.time;
+    //                    _lifetime = time_run - time_begin;
+    //                    if (_lifetime >= LifeTime)
+    //                    {//超过生命周期
+    //                        //Debug.Log("========超过生命周期========");
+    //                        if (TimeLifeTime != null)
+    //                        {
+    //                            TimeLifeTime();
+    //                            over = true;
+    //                        }
+    //                    }
+    //                    else if (CD > 0)
+    //                    {
 
-                            t1 = _lifetime % CD;
-                            if (t1 < t2)
-                            {
-                                //========到达触发条件========
-                                if (TimeCD != null)
-                                {
-                                    //Debug.Log("11111111111:"+State);
-                                    TimeCD();
-                                }
-                            }
-                            t2 = t1;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //                        t1 = _lifetime % CD;
+    //                        if (t1 < t2)
+    //                        {
+    //                            //========到达触发条件========
+    //                            if (TimeCD != null)
+    //                            {
+    //                                //Debug.Log("11111111111:"+State);
+    //                                TimeCD();
+    //                            }
+    //                        }
+    //                        t2 = t1;
+    //                    }
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     /// <summary>
     /// 强行结束
@@ -147,7 +146,14 @@ public class Skill_Time : Skill_Base
         
     }
 
-
+    //=============new================
+    public override void Serialize(Dictionary<string, string> dictionary)
+    {
+        base.Serialize(dictionary);
+        dictionary.Add("Dealy", Dealy.ToString());
+        dictionary.Add("LifeTime", LifeTime.ToString());
+        dictionary.Add("CD", CD.ToString());
+    }
 }
 public delegate void Time_Event();
 

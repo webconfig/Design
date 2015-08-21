@@ -9,19 +9,24 @@ using System.Runtime.Serialization.Formatters.Binary;
 /// 技能模块基类
 /// </summary>
 [System.Serializable]
-public class Skill_Base
+public class Skill_Base : BehaviorDesigner.Runtime.Tasks.Task
 {
     [System.NonSerialized]
     public Skill skill;
     public int ID;
+    [System.NonSerialized]
     public List<int> NextIds;
+    [System.NonSerialized]
     public bool SkillOver = false;
     /// <summary>
     /// 技能状态
     /// </summary>
+    [System.NonSerialized]
     public SkillState State = SkillState.None;
     public bool Play = false;
+    [System.NonSerialized]
     public bool ready_end = false;
+    [System.NonSerialized]
     public object Prev_Data;
 
     public Skill_Base() { }
@@ -53,13 +58,13 @@ public class Skill_Base
         skill.Runing_Add.Add(this);
     }
 
-    /// <summary>
-    /// 更新
-    /// </summary>
-    public virtual void Update(object data)
-    {
+    ///// <summary>
+    ///// 更新
+    ///// </summary>
+    //public virtual void Update(object data)
+    //{
 
-    }
+    //}
     /// <summary>
     /// 强行结束
     /// </summary>
@@ -102,6 +107,22 @@ public class Skill_Base
 
     }
     
+
+    //=============new================
+    public override void Serialize(Dictionary<string, string> dictionary)
+    {
+        dictionary.Add("ID", ID.ToString());
+        dictionary.Add("NextIds", NextIds.ToString());
+        dictionary.Add("Play", Play.ToString());
+    }
+    public override void SerializeUI(Dictionary<string, string> dictionary)
+    {
+        dictionary.Add("ID", ID.ToString());
+    }
+    public override void Deserialize(XmlNode node)
+    {
+        Init(null, node);
+    }
 }
 
 

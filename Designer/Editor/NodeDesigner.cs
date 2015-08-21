@@ -258,8 +258,9 @@ namespace BehaviorDesigner.Editor
 
 		private void init()
         {
+            TaskNameAttribute[] array = Task.GetType().GetCustomAttributes(typeof(TaskNameAttribute), false) as TaskNameAttribute[];
             //获取名称
-			this.taskName = BehaviorDesignerUtility.SplitCamelCase(Task.GetType().Name.ToString());
+            this.taskName = BehaviorDesignerUtility.SplitCamelCase(array[0].Name.ToString());
 
             ////是否拥有子节点
             //this.isParent = Task.GetType().IsSubclassOf(typeof(ParentTask));

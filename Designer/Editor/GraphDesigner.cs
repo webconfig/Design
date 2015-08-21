@@ -1077,13 +1077,7 @@ namespace BehaviorDesigner.Editor
             BehaviorUndo.RegisterUndo("Add Task", this, true, true);
 
             Task task;
-            //if (RootNode == null)
-            //{//添加跟节点
-            //    task = (ScriptableObject.CreateInstance("EntryTask") as Task);
-            //    RootNode = ScriptableObject.CreateInstance<NodeDesigner>();
-            //    RootNode.loadNode(task, behaviorSource, new Vector2(position.x, position.y - 120f), ref this.mNextTaskID);
-            //    RootNode.RootDisplay();
-            //}
+
 
             task = (ScriptableObject.CreateInstance(type) as Task);
             if (task == null)
@@ -1096,17 +1090,8 @@ namespace BehaviorDesigner.Editor
             NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
             nodeDesigner.loadNode(task, behaviorSource, position, ref this.mNextTaskID);
 
-            //if (RootNode.OutgoingNodeConnections.Count == 0)
-            //{
-            //    //创建一个连接
-            //    ActiveNodeConnection = ScriptableObject.CreateInstance<NodeConnection>();
-            //    ActiveNodeConnection.loadConnection(RootNode, NodeConnectionType.Outgoing);
-            //    this.connectNodes(behaviorSource, nodeDesigner);
-            //}
-            //else
-            //{
+
             DetachedNodes.Add(nodeDesigner);
-            //}
             return nodeDesigner;
         }
         /// <summary>

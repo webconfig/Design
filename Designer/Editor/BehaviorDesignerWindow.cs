@@ -400,7 +400,6 @@ namespace BehaviorDesigner.Editor
 				this.mTaskList = ScriptableObject.CreateInstance<TaskList>();
 			}
 			this.mTaskList.init();
-			this.UpdateSelectDatas();
 		}
 
 		public void UpdateGraphStatus()
@@ -428,54 +427,6 @@ namespace BehaviorDesigner.Editor
 			base.Repaint();
 		}
 
-        /// <summary>
-        /// 初始化已有技能节点
-        /// </summary>
-		private void UpdateSelectDatas()
-		{
-            //this.mBreadcrumbGameObjectBehaviorMenu = new GenericMenu();
-            //this.mBreadcrumbGameObjectMenu = new GenericMenu();
-            //this.mBreadcrumbBehaviorMenu = new GenericMenu();
-            //List<Behavior> list = (Resources.FindObjectsOfTypeAll(typeof(Behavior)) as Behavior[]).ToList<Behavior>();
-            //HashSet<string> hashSet = new HashSet<string>();
-            //Dictionary<GameObject, string> dictionary = new Dictionary<GameObject, string>();
-            //for (int i = 0; i < list.Count; i++)
-            //{
-            //    if (list[i].gameObject != null && !dictionary.ContainsKey(list[i].gameObject))
-            //    {
-            //        string text = list[i].gameObject.name;
-            //        if (!AssetDatabase.GetAssetPath(list[i]).Equals(""))
-            //        {
-            //            text += " (prefab)";
-            //        }
-            //        int num = 1;
-            //        while (hashSet.Contains(text))
-            //        {
-            //            text = string.Format("{0} ({1})", list[i].gameObject.name, num);
-            //            num++;
-            //        }
-            //        hashSet.Add(text);
-            //        dictionary.Add(list[i].gameObject, text);
-            //    }
-            //    if (list[i].ToString().Equals(""))
-            //    {
-            //        list[i].GetBehaviorSource().behaviorName = "(Behavior)";
-            //    }
-            //}
-            //list.Sort(new AlphanumComparator<Behavior>());
-            //for (int j = 0; j < list.Count; j++)
-            //{
-            //    this.mBreadcrumbGameObjectBehaviorMenu.AddItem(new GUIContent(list[j].ToString()), list[j].Equals((this.mActiveBehaviorSource != null) ? this.mActiveBehaviorSource.Owner : null), new GenericMenu.MenuFunction2(this.behaviorSelectionCallback), list[j]);
-            //    //this.mBreadcrumbGameObjectMenu.AddItem(new GUIContent(dictionary[list[j].gameObject]), list[j].gameObject.Equals(this.mActiveObject as GameObject), new GenericMenu.MenuFunction2(this.behaviorSelectionCallback), list[j]);
-            //    //if (list[j].gameObject.Equals(this.mActiveObject as GameObject))
-            //    //{
-            //    //    this.mBreadcrumbBehaviorMenu.AddItem(new GUIContent(list[j].GetBehaviorSource().behaviorName), list[j].Equals((this.mActiveBehaviorSource != null) ? this.mActiveBehaviorSource.Owner : null), new GenericMenu.MenuFunction2(this.behaviorSelectionCallback), list[j]);
-            //    //}
-            //}
-
-
-            
-		}
 
 		private void buildRightClickMenu(NodeDesigner clickedNode)
 		{
@@ -1300,25 +1251,6 @@ namespace BehaviorDesigner.Editor
 			this.addTask((Type)obj, true);
 		}
 
-        /// <summary>
-        /// 选择完数据后返回的函数
-        /// </summary>
-        /// <param name="obj"></param>
-		private void behaviorSelectionCallback(object obj)
-		{
-            //BehaviorSource behavior_data = obj as BehaviorSource;
-            ////this.mActiveObject = behavior.gameObject;
-            ////Selection.activeObject=this.mActiveObject;
-            //this.LoadBehavior(behavior_data, false);
-            //this.UpdateGraphStatus();
-            //this.UpdateSelectDatas();
-            //if (EditorApplication.isPaused)
-            //{
-            //    this.mUpdateNodeTaskMap = true;
-            //    this.UpdateNodeTaskMap();
-            //}
-		}
-
 		private void toggleBreakpoint(object obj)
 		{
 			NodeDesigner nodeDesigner = obj as NodeDesigner;
@@ -1464,7 +1396,6 @@ namespace BehaviorDesigner.Editor
 			this.mGraphDesigner.clear();
 			this.mActiveBehaviorSource = null;
 			this.UpdateGraphStatus();
-			this.UpdateSelectDatas();
 			base.Repaint();
         }
 
@@ -1557,7 +1488,7 @@ namespace BehaviorDesigner.Editor
 
             string text2 = (this.mActiveBehaviorSource != null) ? this.mActiveBehaviorSource.behaviorName : "(None Selected)";
             if (GUILayout.Button(text2, EditorStyles.toolbarPopup, new GUILayoutOption[] { GUILayout.Width(140f) }))
-            {
+            {//技能选择
                 GenericMenu menu = new GenericMenu();
                 for (int j = 0; j < BehaviorSources.Count; j++)
                 {
@@ -1565,15 +1496,19 @@ namespace BehaviorDesigner.Editor
                 }
                 menu.ShowAsContext();
             }
+
             if (GUILayout.Button("New", EditorStyles.toolbarButton, new GUILayoutOption[] { GUILayout.Width(42f) }))
             {//保存按钮
                 SaveCurrent();
                 NewBehavior();
             }
+
             if (GUILayout.Button("Load", EditorStyles.toolbarButton, new GUILayoutOption[] { GUILayout.Width(42f) }))
             {//保存按钮
+                //Debug.Log("111111111111");
                 Load();
             }
+
             if (GUILayout.Button("Save", EditorStyles.toolbarButton, new GUILayoutOption[] { GUILayout.Width(42f) }))
             {//保存按钮
                 if (this.mActiveBehaviorSource != null)
@@ -1585,18 +1520,13 @@ namespace BehaviorDesigner.Editor
                     EditorUtility.DisplayDialog("Unable to Save Behavior Tree", "Select a behavior tree from within the scene.", "OK");
                 }
             }
-            //GUILayout.FlexibleSpace();
-            //if (GUILayout.Button("Preferences", this.mShowPrefPane ? BehaviorDesignerUtility.ToolbarButtonSelectionGUIStyle : EditorStyles.toolbarButton, new GUILayoutOption[]
-            //{
-            //    GUILayout.Width(80f)
-            //}))
-            //{
-            //    this.mShowPrefPane = !this.mShowPrefPane;
-            //}
+            GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-            //GUILayout.EndVertical();
             GUILayout.EndArea();
         }
+
+
+        
 
         private void drawPreferencesPane()
         {
@@ -1887,18 +1817,21 @@ namespace BehaviorDesigner.Editor
             }
             this.mGraphDesigner.save(this.mActiveBehaviorSource);//把设计器内的数据保存到数据源里面去
             //序列化数据源
-            string data = "", UIs = "", data_ui="";
+            string Datas="", data = "", UIs = "", data_ui="";
 
             for (int i = 0; i < BehaviorSources.Count;i++)
             {
                 SerializeXml.Serialize(BehaviorSources[i], out data, out data_ui);
                 UIs += data_ui;
+                Datas += data;
             }
-            UIs = "<skills>" + UIs + "</skills>";
+            //UIs = "<skills>" + UIs + "</skills>";
+
+            Datas = "<skills><datas>" + Datas + "</datas><ui>" + UIs + "</ui></skills>";
                 
             if (string.IsNullOrEmpty(BehaviorDesignerWindow.XmlPath))
             {
-                OpenWrite(UIs);
+                OpenWrite(Datas);
                 return;
             }
             else
@@ -1907,7 +1840,7 @@ namespace BehaviorDesigner.Editor
                 FileStream fs = new FileStream(BehaviorDesignerWindow.XmlPath, FileMode.Create, FileAccess.Write);
                 fs.SetLength(0);
                 StreamWriter sw = new StreamWriter(fs, Encoding.UTF8);
-                sw.Write(UIs);
+                sw.Write(Datas);
                 sw.Close();
                 fs.Close();
             }
@@ -1951,8 +1884,6 @@ namespace BehaviorDesigner.Editor
             }
         }
 
-
-
         private void LoadXmlFile()
         {
             OpenRead();
@@ -1987,19 +1918,21 @@ namespace BehaviorDesigner.Editor
                 BehaviorDesignerWindow.XmlPath = ofn.file;
                 XmlDocument xml = new XmlDocument();
                 xml.Load(BehaviorDesignerWindow.XmlPath);
-                XmlNodeList childs = xml.SelectNodes("/skills/skill");
+                XmlNodeList childs = xml.SelectNodes("/skills/ui/skill");
                 foreach (XmlNode child in childs)
                 {
-                    //Debug.Log("ppppp");
-                    BehaviorSource tk = DeserializeXml.Deserialize(child);
+                    //Debug.Log(child.Attributes["id"].Value);
+
+                    //Debug.Log(xml.SelectSingleNode(@"/skills/datas/skill[@id='" + child.Attributes["id"].Value + "']"));
+
+
+                    BehaviorSource tk = DeserializeXml.Deserialize(child, xml.SelectSingleNode(@"/skills/datas/skill[@id='" + child.Attributes["id"].Value + "']"));
                     //int index = (task.Children == null) ? 0 : task.Children.Count;
                     BehaviorSources.Add(tk);
                 }
-                UpdateSelectDatas();
+                ClearGraph();
             }
         }
-
-
         #endregion
 
 

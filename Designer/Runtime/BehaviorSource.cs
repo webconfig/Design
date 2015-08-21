@@ -181,20 +181,20 @@ namespace BehaviorDesigner.Runtime
             //return string.Format("{0} - {1}", this.Owner.GetOwnerName(), this.behaviorName);
 		}
 
-        /// <summary>
-        /// xml 序列化
-        /// </summary>
-        /// <param name="data"></param>
-        public string SerializeXml()
-        {
-            System.Text.StringBuilder str = new System.Text.StringBuilder();
-            for(int i=0;i<DetachedTasks.Count;i++)
-            {
-              str.Append(DetachedTasks[i].SerializeUI());
-            }
-            return str.ToString();
+        ///// <summary>
+        ///// xml 序列化
+        ///// </summary>
+        ///// <param name="data"></param>
+        //public string SerializeXml()
+        //{
+        //    System.Text.StringBuilder str = new System.Text.StringBuilder();
+        //    for(int i=0;i<DetachedTasks.Count;i++)
+        //    {
+        //      str.Append(DetachedTasks[i].SerializeUI());
+        //    }
+        //    return str.ToString();
 
-        }
+        //}
 
 	}
 }

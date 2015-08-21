@@ -2,19 +2,27 @@
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using BehaviorDesigner.Runtime;
+using BehaviorDesigner.Runtime.Tasks;
+
+
+
 /// <summary>
 /// 动画模块
 /// </summary>
+[TaskCategory("Basic")]
+[TaskName("anim")]
+[TaskDescription("Plays animation")]
 public class Skill_Anim : Skill_Time,IDeepCopy
 {
     /// <summary>
     /// 动画
     /// </summary>
-    private string Anim;
+    public string Anim;
     /// <summary>
     /// 动画播放时间
     /// </summary>
-    private float AnimSpeed;
+    public float AnimSpeed;
     /// <summary>
     /// 动画联动--无，2:本队
     /// </summary>
@@ -80,6 +88,17 @@ public class Skill_Anim : Skill_Time,IDeepCopy
         this.Relation = data.Relation;
     }
     #endregion
+
+
+
+    //=============new================
+    public override void Serialize(Dictionary<string, string> dictionary)
+    {
+        base.Serialize(dictionary);
+        dictionary.Add("Anim", Anim);
+        dictionary.Add("AnimSpeed", AnimSpeed.ToString());
+    }
+
 }
 public delegate void PlayAnim(AnimatorStateInfo anim_state, string anim);
 

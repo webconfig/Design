@@ -72,34 +72,34 @@ public class Skill
 
     public void Update()
     {
-        if (Runing_Add.Count > 0)
-        {
-            Runing.AddRange(Runing_Add);
-            Runing_Add.Clear();
-        }
-        if (Runing.Count > 0)
-        {
-            foreach (Skill_Base item in Runing)
-            {
-                if (item.State!=SkillState.Over)
-                {
-                    item.Update(null);
-                }
-                else
-                {
-                    Runing_End.Add(item);
-                }
-            }
-            //===移除运行结束的模块====
-            if (Runing_End.Count > 0)
-            {
-                foreach (Skill_Base item in Runing_End)
-                {
-                    Runing.Remove(item);
-                }
-                Runing_End.Clear();
-            }
-        }
+        //if (Runing_Add.Count > 0)
+        //{
+        //    Runing.AddRange(Runing_Add);
+        //    Runing_Add.Clear();
+        //}
+        //if (Runing.Count > 0)
+        //{
+        //    foreach (Skill_Base item in Runing)
+        //    {
+        //        if (item.State!=SkillState.Over)
+        //        {
+        //            item.Update(null);
+        //        }
+        //        else
+        //        {
+        //            Runing_End.Add(item);
+        //        }
+        //    }
+        //    //===移除运行结束的模块====
+        //    if (Runing_End.Count > 0)
+        //    {
+        //        foreach (Skill_Base item in Runing_End)
+        //        {
+        //            Runing.Remove(item);
+        //        }
+        //        Runing_End.Clear();
+        //    }
+        //}
     }
 
 

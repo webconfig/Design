@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 namespace BehaviorDesigner.Runtime.Tasks
@@ -79,19 +80,26 @@ namespace BehaviorDesigner.Runtime.Tasks
         /// 序列化节点内容
         /// </summary>
         /// <returns></returns>
-        public virtual string Serialize()
+        public virtual void Serialize(Dictionary<string, string> dictionary)
         {
-            return string.Empty;
+            return;
         }
 
 
         /// <summary>
-        /// 序列化节点UI
+        /// 序列化节点内容
         /// </summary>
         /// <returns></returns>
-        public virtual string SerializeUI()
+        public virtual void SerializeUI(Dictionary<string, string> dictionary)
         {
-            return string.Empty;
+            return;
+        }
+
+
+
+        public virtual void Deserialize(XmlNode node)
+        {
+
         }
 	}
 }

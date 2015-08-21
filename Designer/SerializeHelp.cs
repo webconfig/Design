@@ -25,29 +25,7 @@ public class SerializeHelp
     }
 
 
-    public static string ToString(XmlData data)
-    {
-        StringBuilder str = new StringBuilder();
-        str.Append("<item ");
-        foreach(var item in data.property)
-        {
-            str.AppendFormat("{0}=\"{1}\" ", item.Key, item.Value);
-        }
-        if (data.childs.Count == 0)
-        {
-            str.Append("/>");
-        }
-        else
-        {
-            str.Append(">");
-            for(int i=0;i<data.childs.Count;i++)
-            {
-                str.Append(ToString(data.childs[i]));
-            }
-            str.Append("</item>");
-        }
-        return str.ToString();
-    }
+
     public static Vector2 GetXmlAttrVector2(XmlNode node, string key)
     {
         //Debug.Log(key);

@@ -205,7 +205,7 @@ namespace BehaviorDesigner.Editor
 					Type[] types = assembly.GetTypes();
 					for (int j = 0; j < types.Length; j++)
 					{
-                        if (!types[j].IsAbstract && types[j].IsSubclassOf(typeof(BehaviorDesigner.Runtime.Tasks.Task)) )
+                        if (!types[j].IsAbstract && types[j].IsSubclassOf(typeof(Skill_Time)))
                         {
                             list.Add(types[j]);
                         }
@@ -353,10 +353,22 @@ namespace BehaviorDesigner.Editor
 							{
 								GUILayout.BeginHorizontal(new GUILayoutOption[0]);
 								GUILayout.Space((float)(EditorGUI.indentLevel * 10));
-								if (GUILayout.Button(BehaviorDesignerUtility.SplitCamelCase(category.Tasks[i].Type.Name.ToString()), EditorStyles.toolbarButton, new GUILayoutOption[0]))
-								{//点击按钮，添加一个任务
-									window.addTask(category.Tasks[i].Type, false);
-								}
+
+                                ////Debug.Log(category.Tasks[i].Type.Name.ToString());
+                                //if (GUILayout.Button(BehaviorDesignerUtility.SplitCamelCase(category.Tasks[i].Type.Name.ToString()), EditorStyles.toolbarButton, new GUILayoutOption[0]))
+                                //{//点击按钮，添加一个任务
+                                //    window.addTask(category.Tasks[i].Type, false);
+                                //}
+
+
+
+                                TaskNameAttribute[] array = category.Tasks[i].Type.GetCustomAttributes(typeof(TaskNameAttribute), false) as TaskNameAttribute[];
+                                if (GUILayout.Button(array[0].Name, EditorStyles.toolbarButton, new GUILayoutOption[0]))
+                                {//点击按钮，添加一个任务
+                                    window.addTask(category.Tasks[i].Type, false);
+                                }
+
+
 								GUILayout.Space(3f);
 								GUILayout.EndHorizontal();
 							}
