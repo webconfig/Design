@@ -1,1207 +1,314 @@
-using BehaviorDesigner.Runtime;
-using BehaviorDesigner.Runtime.Tasks;
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using System.Xml;
 
-namespace BehaviorDesigner.Editor
+[Serializable]
+public class GraphDesigner : ScriptableObject
 {
-	[Serializable]
-	public class GraphDesigner : ScriptableObject
-	{
-		[SerializeField]
-		private int mNextTaskID;
+    /// <summary>
+    /// å½“å‰é€‰æ‹©çš„èŠ‚ç‚¹
+    /// </summary>
+    public List<Task> SelectedNodes = new List<Task>();
+    /// <summary>
+    /// æ‰€æœ‰çš„èŠ‚ç‚¹
+    /// </summary>
+    public List<Task> DetachedNodes = new List<Task>();
+    /// <summary>
+    /// æ­£åœ¨è¿æ¥çš„çº¿
+    /// </summary>
+    public NodeConnection ActiveNodeConnection;
 
-		private List<int> mNodeSelectedID = new List<int>();
-
-		[SerializeField]
-		private int[] mPrevNodeSelectedID;
-
-        ///// <summary>
-        ///// ¸ù½Úµã
-        ///// </summary>
-        //public NodeDesigner RootNode;
-
-        public List<NodeDesigner> DetachedNodes=new List<NodeDesigner>();
-
-        public List<NodeDesigner> SelectedNodes=new List<NodeDesigner>();
-        /// <summary>
-        /// »ñÈ¡½¹µãµÄ½Úµã
-        /// </summary>
-        public NodeDesigner HoverNode;
-
-        public NodeConnection ActiveNodeConnection;
-
-        public List<NodeConnection> SelectedNodeConnections=new List<NodeConnection>();
-
-		public void OnEnable()
-		{
-            base.hideFlags = HideFlags.HideAndDontSave;
-		}
-
-		public bool OnInspectorUpdate()
-		{
-            //if (this.mEntryTask == null)
-            //{
-            //    return false;
-            //}
-            //bool result = this.mEntryTask.OnInspectorUpdate();
-
-            //if (RootNode == null) { return false; }
-            //bool result = RootNode.OnInspectorUpdate();
-
-
-            if (DetachedNodes == null || DetachedNodes.Count <= 0) { return false; }
-            bool result = false;
-			for (int i = 0; i < DetachedNodes.Count; i++)
-			{
-				if (DetachedNodes[i].OnInspectorUpdate())
-				{
-					result = true;
-				}
-			}
-			return result;
-		}
-
-        /// <summary>
-        /// Ñ°ÕÒ·¶Î§ÄÚµÄ½Úµã
-        /// </summary>
-        /// <param name="point"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-		public NodeDesigner nodeAt(Vector2 point, Vector2 offset)
-		{
-            if (DetachedNodes == null || DetachedNodes.Count <= 0)
-			{
-				return null;
-			}
-			for (int i = 0; i < SelectedNodes.Count; i++)
-			{
-				if (SelectedNodes[i].contains(point, offset, false))
-				{
-					return SelectedNodes[i];
-				}
-			}
-			NodeDesigner result;
-			for (int j = DetachedNodes.Count - 1; j > -1; j--)
-			{
-				if (DetachedNodes[j] != null && (result = this.nodeChildrenAt(DetachedNodes[j], point, offset)) != null)
-				{
-					return result;
-				}
-			}
-            //if (RootNode != null && (result = this.nodeChildrenAt(RootNode, point, offset)) != null)
-            //{
-            //    return result;
-            //}
-            //if (RootNode.contains(point, offset, true))
-            //{
-            //    return RootNode;
-            //}
-			return null;
-		}
-
-		public NodeDesigner nodeChildrenAt(NodeDesigner nodeDesigner, Vector2 point, Vector2 offset)
-		{
-			if (nodeDesigner.contains(point, offset, true))
-			{
-				return nodeDesigner;
-			}
-            //if (nodeDesigner.IsParent)
-            //{
-                Task parentTask = nodeDesigner.Task;
-				if (!parentTask.NodeData.Collapsed && parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						NodeDesigner result;
-						if (parentTask.Children[i] != null && (result = this.nodeChildrenAt(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner, point, offset)) != null)
-						{
-							return result;
-						}
-					}
-				}
-            //}
-			return null;
-		}
-
-		public List<NodeDesigner> nodesAt(Rect rect, Vector2 offset)
-		{
-			List<NodeDesigner> list = new List<NodeDesigner>();
-            //if (RootNode != null)
-            //{
-            //    this.nodesChildrenAt(RootNode, rect, offset, ref list);
-            //}
-			for (int i = 0; i < DetachedNodes.Count; i++)
-			{
-				this.nodesChildrenAt(DetachedNodes[i], rect, offset, ref list);
-			}
-			if (list.Count <= 0)
-			{
-				return null;
-			}
-			return list;
-		}
-
-		public void nodesChildrenAt(NodeDesigner nodeDesigner, Rect rect, Vector2 offset, ref List<NodeDesigner> nodes)
-		{
-			if (nodeDesigner.intersects(rect, offset))
-			{
-				nodes.Add(nodeDesigner);
-			}
-            //if (nodeDesigner.IsParent)
-            //{
-				Task parentTask = nodeDesigner.Task;
-				if (!parentTask.NodeData.Collapsed && parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						if (parentTask.Children[i] != null)
-						{
-							this.nodesChildrenAt(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner, rect, offset, ref nodes);
-						}
-					}
-				}
-            //}
-		}
-
-		public bool isSelected(NodeDesigner nodeDesigner)
-		{
-			return SelectedNodes.Contains(nodeDesigner);
-		}
-
-		public void select(NodeDesigner nodeDesigner)
-		{
-			this.select(nodeDesigner, true);
-		}
-
-		public void select(NodeDesigner nodeDesigner, bool addHash)
-		{
-			if (SelectedNodes.Count == 1)
-			{
-				this.indicateReferencedTasks(SelectedNodes[0].Task, false);
-			}
-			SelectedNodes.Add(nodeDesigner);
-			if (addHash)
-			{
-				this.mNodeSelectedID.Add(nodeDesigner.Task.ID);
-			}
-			nodeDesigner.select();
-			if (SelectedNodes.Count == 1)
-			{
-				this.indicateReferencedTasks(SelectedNodes[0].Task, true);
-			}
-		}
-
-		public void deselect(NodeDesigner nodeDesigner)
-		{
-			SelectedNodes.Remove(nodeDesigner);
-			this.mNodeSelectedID.Remove(nodeDesigner.Task.ID);
-			nodeDesigner.deselect();
-			this.indicateReferencedTasks(nodeDesigner.Task, false);
-		}
-
-		public void deselectAllExcept(NodeDesigner nodeDesigner)
-		{
-			for (int i = SelectedNodes.Count - 1; i >= 0; i--)
-			{
-				if (!SelectedNodes[i].Equals(nodeDesigner))
-				{
-					SelectedNodes.RemoveAt(i);
-					this.mNodeSelectedID.RemoveAt(i);
-					SelectedNodes[i].deselect();
-				}
-			}
-			this.indicateReferencedTasks(nodeDesigner.Task, false);
-		}
-
-		public void clearNodeSelection()
-		{
-			if (SelectedNodes.Count == 1)
-			{
-				this.indicateReferencedTasks(SelectedNodes[0].Task, false);
-			}
-			for (int i = 0; i < SelectedNodes.Count; i++)
-			{
-				SelectedNodes[i].deselect();
-			}
-			SelectedNodes.Clear();
-			this.mNodeSelectedID.Clear();
-		}
-
-		public void deselectWithParent(NodeDesigner nodeDesigner)
-		{
-			for (int i = SelectedNodes.Count - 1; i >= 0; i--)
-			{
-				if (SelectedNodes[i].hasParent(nodeDesigner))
-				{
-					this.deselect(SelectedNodes[i]);
-				}
-			}
-		}
-
-		public void hover(NodeDesigner nodeDesigner)
-		{
-			if (!nodeDesigner.ShowHoverBar)
-			{
-				nodeDesigner.ShowHoverBar = true;
-				this.HoverNode = nodeDesigner;
-			}
-		}
-
-		public void clearHover()
-		{
-			if (this.HoverNode)
-			{
-				this.HoverNode.ShowHoverBar = false;
-				this.HoverNode = null;
-			}
-		}
-
-		private void indicateReferencedTasks(Task task, bool indicate)
-		{
-			List<Task> referencedTasks = TaskInspector.GetReferencedTasks(task);
-			if (referencedTasks != null && referencedTasks.Count > 0)
-			{
-				for (int i = 0; i < referencedTasks.Count; i++)
-				{
-					if (referencedTasks[i] != null && referencedTasks[i].NodeData != null)
-					{
-						NodeDesigner nodeDesigner = referencedTasks[i].NodeData.NodeDesigner as NodeDesigner;
-						if (nodeDesigner != null)
-						{
-							nodeDesigner.ShowReferenceIcon = indicate;
-						}
-					}
-				}
-			}
-		}
-        /// <summary>
-        /// ÍÏ¶¯½Úµã
-        /// </summary>
-        /// <param name="delta"></param>
-        /// <param name="dragChildren"></param>
-        /// <param name="hasDragged"></param>
-        /// <returns></returns>
-		public bool dragSelectedNodes(Vector2 delta, bool dragChildren, bool hasDragged)
-		{
-			if (SelectedNodes.Count == 0)
-			{
-				return false;
-			}
-			bool flag = SelectedNodes.Count == 1;
-			for (int i = 0; i < SelectedNodes.Count; i++)
-			{
-				this.dragTask(SelectedNodes[i], delta, dragChildren, hasDragged);
-			}
-            //if (flag && dragChildren && SelectedNodes[0].IsRootDisplay && RootNode != null)
-            //{
-            //    this.dragTask(RootNode, delta, dragChildren, hasDragged);
-            //}
-			return true;
-		}
-
-		public void dragTask(NodeDesigner nodeDesigner, Vector2 delta, bool dragChildren, bool hasDragged)
-		{
-			if (!hasDragged)
-			{
-				BehaviorUndo.RegisterUndo("Drag", nodeDesigner.Task, true, false);
-			}
-			nodeDesigner.movePosition(delta);
-			if (nodeDesigner.ParentNodeDesigner != null)
-			{
-				int num = nodeDesigner.ParentNodeDesigner.childIndexForTask(nodeDesigner.Task);
-				if (num != -1)
-				{
-					int index = num - 1;
-					bool flag = false;
-					NodeDesigner nodeDesigner2 = nodeDesigner.ParentNodeDesigner.nodeDesignerForChildIndex(index);
-					if (nodeDesigner2 != null && nodeDesigner.Task.NodeData.Position.x < nodeDesigner2.Task.NodeData.Position.x)
-					{
-						nodeDesigner.ParentNodeDesigner.moveChildNode(num, true);
-						flag = true;
-					}
-					if (!flag)
-					{
-						index = num + 1;
-						nodeDesigner2 = nodeDesigner.ParentNodeDesigner.nodeDesignerForChildIndex(index);
-						if (nodeDesigner2 != null && nodeDesigner.Task.NodeData.Position.x > nodeDesigner2.Task.NodeData.Position.x)
-						{
-							nodeDesigner.ParentNodeDesigner.moveChildNode(num, false);
-						}
-					}
-				}
-			}
-			if (dragChildren)
-			{
-                Task parentTask = nodeDesigner.Task;
-				if (parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						NodeDesigner nodeDesigner3;
-						if (!this.isSelected(nodeDesigner3 = (parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner)))
-						{
-							this.dragTask(nodeDesigner3, delta, dragChildren, hasDragged);
-						}
-					}
-				}
-			}
-		}
-
-		public bool nodeCanOriginateConnection(NodeDesigner nodeDesigner, NodeConnection connection)
-		{
-			return !nodeDesigner.IsRootDisplay || (nodeDesigner.IsRootDisplay && connection.NodeConnectionType == NodeConnectionType.Outgoing);
-		}
-
-		public bool nodeCanAcceptConnection(NodeDesigner nodeDesigner, NodeConnection connection)
-		{
-            //if ((!nodeDesigner.IsRootDisplay || connection.NodeConnectionType != NodeConnectionType.Incoming) && (nodeDesigner.IsRootDisplay || (!nodeDesigner.IsParent && (connection.NodeConnectionType != NodeConnectionType.Outgoing))))
-            //{
-            //    return false;
-            //}
-            //if (nodeDesigner.IsRootDisplay || connection.OriginatingNodeDesigner.IsRootDisplay)
-            //{
-            //    return true;
-            //}
-			HashSet<NodeDesigner> hashSet = new HashSet<NodeDesigner>();
-			NodeDesigner nodeDesigner2 = (connection.NodeConnectionType == NodeConnectionType.Outgoing) ? nodeDesigner : connection.OriginatingNodeDesigner;
-			NodeDesigner item = (connection.NodeConnectionType == NodeConnectionType.Outgoing) ? connection.OriginatingNodeDesigner : nodeDesigner;
-			return !this.cycleExists(nodeDesigner2, ref hashSet) && !hashSet.Contains(item);
-		}
-
-		private bool cycleExists(NodeDesigner nodeDesigner, ref HashSet<NodeDesigner> set)
-		{
-			if (set.Contains(nodeDesigner))
-			{
-				return true;
-			}
-			set.Add(nodeDesigner);
-            //if (nodeDesigner.IsParent)
-            //{
-                Task parentTask = nodeDesigner.Task;
-				if (parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						if (this.cycleExists(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner, ref set))
-						{
-							return true;
-						}
-					}
-				}
-            //}
-			return false;
-		}
-
-		public void connectNodes(BehaviorSource behaviorSource, NodeDesigner nodeDesigner)
-		{
-			NodeConnection nodeConnection = ActiveNodeConnection;
-			ActiveNodeConnection = null;
-			if (nodeConnection != null && !nodeConnection.OriginatingNodeDesigner.Equals(nodeDesigner))
-			{
-				NodeDesigner originatingNodeDesigner = nodeConnection.OriginatingNodeDesigner;
-				BehaviorUndo.RegisterUndo("Connection", this, true, true);
-                //BehaviorUndo.RegisterUndo("Connection", behaviorSource.Owner.GetObject(), false, true);
-				BehaviorUndo.RegisterUndo("Connection", nodeDesigner, false, true);
-				BehaviorUndo.RegisterUndo("Connection", originatingNodeDesigner, false, true);
-				if (nodeConnection.NodeConnectionType == NodeConnectionType.Outgoing)
-				{
-					BehaviorUndo.RegisterUndo("Connection", originatingNodeDesigner.Task, false, true);
-					this.removeParentConnection(nodeDesigner);
-					this.checkForLastConnectionRemoval(originatingNodeDesigner);
-					originatingNodeDesigner.addChildNode(nodeDesigner, nodeConnection, false);
-				}
-				else
-				{
-					BehaviorUndo.RegisterUndo("Connection", nodeDesigner.Task, false, true);
-					this.removeParentConnection(originatingNodeDesigner);
-					this.checkForLastConnectionRemoval(nodeDesigner);
-					nodeDesigner.addChildNode(originatingNodeDesigner, nodeConnection, false);
-				}
-                //if (nodeConnection.OriginatingNodeDesigner.IsRootDisplay)
-                //{
-                //    RootNode = nodeConnection.DestinationNodeDesigner;
-                //}
-				DetachedNodes.Remove(nodeConnection.DestinationNodeDesigner);
-			}
-		}
-
-		private void removeParentConnection(NodeDesigner nodeDesigner)
-		{
-			if (nodeDesigner.ParentNodeDesigner != null)
-			{
-				NodeDesigner parentNodeDesigner = nodeDesigner.ParentNodeDesigner;
-				NodeConnection nodeConnection = null;
-				for (int i = 0; i < parentNodeDesigner.OutgoingNodeConnections.Count; i++)
-				{
-					if (parentNodeDesigner.OutgoingNodeConnections[i].DestinationNodeDesigner.Equals(nodeDesigner))
-					{
-						nodeConnection = parentNodeDesigner.OutgoingNodeConnections[i];
-						break;
-					}
-				}
-				if (nodeConnection != null)
-				{
-					this.removeConnection(nodeConnection, "Connect");
-				}
-			}
-		}
-
-        private void checkForLastConnectionRemoval(NodeDesigner nodeDesigner)
+    #region æ•°æ®æ“ä½œ
+    /// <summary>
+    /// åŠ è½½ä¸€ä¸ªæ•°æ®æº
+    /// </summary>
+    /// <param name="data"></param>
+    public void Load(SkillData data)
+    {
+        clear();
+        //DetachedNodes.Clear();
+        //List<Task> list = data.GetTasks();
+        //if (list != null)
+        //{
+        //    for (int j = 0; j < list.Count; j++)
+        //    {
+        //        NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
+        //        nodeDesigner.loadTask(list[j]);
+        //        DetachedNodes.Add(nodeDesigner);
+        //        loadNodeSelection(nodeDesigner);
+        //    }
+        //}
+    }
+    /// <summary>
+    /// æ·»åŠ ä¸€ä¸ªèŠ‚ç‚¹
+    /// </summary>
+    /// <param name="behaviorSource"></param>
+    /// <param name="type"></param>
+    /// <param name="position"></param>
+    /// <returns></returns>
+    public Task addNode(Type type, Vector2 position)
+    {
+        Task task;
+        task = (ScriptableObject.CreateInstance(type) as Task);
+        if (task == null)
         {
-            //if (nodeDesigner.IsRootDisplay)
-            //{
-            //    if (nodeDesigner.OutgoingNodeConnections.Count == 1)
-            //    {
-            //        this.removeConnection(nodeDesigner.OutgoingNodeConnections[0], "Connect");
-            //        return;
-            //    }
-            //}
-            //else
-            //{
-            Task parentTask = nodeDesigner.Task;
-            if (parentTask.Children != null)
-            {
-                NodeConnection nodeConnection = null;
-                for (int i = 0; i < nodeDesigner.OutgoingNodeConnections.Count; i++)
-                {
-                    if (nodeDesigner.OutgoingNodeConnections[i].DestinationNodeDesigner.Equals(parentTask.Children[parentTask.Children.Count - 1].NodeData.NodeDesigner as NodeDesigner))
-                    {
-                        nodeConnection = nodeDesigner.OutgoingNodeConnections[i];
-                        break;
-                    }
-                }
-                if (nodeConnection != null)
-                {
-                    this.removeConnection(nodeConnection, "Connect");
-                }
-            }
-            //}
+            Debug.LogError(string.Format("Unable to create task of type {0}. Is the class name the same as the file name?", type));
+            return null;
+        }
+        task.loadNode(position);
+        DetachedNodes.Add(task);
+        return task;
+    }
+    #endregion
+
+    #region GUI
+    public bool drawNodes(Vector2 mousePosition, Vector2 offset, float graphZoom)
+    {
+        bool result = false;
+        if (DetachedNodes == null || DetachedNodes.Count <= 0) { return false; }
+
+        //ç»˜åˆ¶æ­£åœ¨è¿æ¥çš„çº¿ï¼ˆé¼ æ ‡æ‹–åŠ¨çš„è¿çº¿ï¼‰
+        if (mousePosition != new Vector2(-1f, -1f) && ActiveNodeConnection != null)
+        {
+            //è·å–è¿çº¿çš„èµ·ç‚¹
+            Vector2 position_begin = ActiveNodeConnection.Originating.GetConnectionPosition(offset);
+
+            ActiveNodeConnection.HorizontalHeight = (position_begin.y + mousePosition.y) / 2f;
+            ActiveNodeConnection.drawConnection(position_begin, mousePosition, graphZoom,true);
         }
 
-        public void nodeConnectionsAt(Vector2 point, Vector2 offset, ref List<NodeConnection> nodeConnections)
+
+        //ç»˜åˆ¶èŠ‚ç‚¹
+        for (int i = 0; i < DetachedNodes.Count; i++)
         {
-            //if (this.mEntryTask == null)
-            //{
-            //    return;
-            //}
-            //this.nodeChildrenConnectionsAt(this.mEntryTask, point, offset, ref nodeConnections);
-
-            if (DetachedNodes == null || DetachedNodes.Count <= 0) { return; }
-
-            //this.nodeChildrenConnectionsAt(RootNode, point, offset, ref nodeConnections);
-
-            for (int i = 0; i < DetachedNodes.Count; i++)
-            {
-                this.nodeChildrenConnectionsAt(DetachedNodes[i], point, offset, ref nodeConnections);
-            }
-        }
-
-		public void nodeChildrenConnectionsAt(NodeDesigner nodeDesigner, Vector2 point, Vector2 offset, ref List<NodeConnection> nodeConnections)
-		{
-			nodeDesigner.connectionContains(point, offset, ref nodeConnections);
-            //if (nodeDesigner.IsParent)
-            //{
-                Task parentTask = nodeDesigner.Task;
-				if (parentTask != null && parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						if (parentTask.Children[i] != null)
-						{
-							this.nodeChildrenConnectionsAt(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner, point, offset, ref nodeConnections);
-						}
-					}
-				}
-            //}
-		}
-
-		public void removeConnection(NodeConnection nodeConnection, string undoName)
-		{
-			BehaviorUndo.RegisterUndo(undoName, nodeConnection.OriginatingNodeDesigner, false, true);
-			BehaviorUndo.RegisterUndo(undoName, nodeConnection.OriginatingNodeDesigner.Task, false, true);
-			BehaviorUndo.RegisterUndo(undoName, nodeConnection.DestinationNodeDesigner, false, true);
-			DetachedNodes.Add(nodeConnection.DestinationNodeDesigner);
-			nodeConnection.OriginatingNodeDesigner.removeChildNode(nodeConnection.DestinationNodeDesigner);
-            //if (nodeConnection.OriginatingNodeDesigner.IsRootDisplay)
-            //{
-            //    RootNode = null;
-            //}
-		}
-
-		public void moveChildNode(NodeDesigner nodeDesigner, int index, bool decreaseIndex)
-		{
-			nodeDesigner.moveChildNode(index, decreaseIndex);
-		}
-
-		public bool isSelected(NodeConnection nodeConnection)
-		{
-			for (int i = 0; i < SelectedNodeConnections.Count; i++)
-			{
-				if (SelectedNodeConnections[i].Equals(nodeConnection))
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-
-		public void select(NodeConnection nodeConnection)
-		{
-			SelectedNodeConnections.Add(nodeConnection);
-			nodeConnection.select();
-		}
-
-		public void deselect(NodeConnection nodeConnection)
-		{
-			SelectedNodeConnections.Remove(nodeConnection);
-			nodeConnection.deselect();
-		}
-
-		public void clearConnectionSelection()
-		{
-			for (int i = 0; i < SelectedNodeConnections.Count; i++)
-			{
-				SelectedNodeConnections[i].deselect();
-			}
-			SelectedNodeConnections.Clear();
-		}
-
-		public void graphDirty()
-		{
-            //if (this.mEntryTask == null)
-            //{
-            //    return;
-            //}
-            //this.mEntryTask.markDirty();
-
-            if (DetachedNodes == null || DetachedNodes.Count <= 0)
-            {
-                return;
-            }
-            //RootNode.markDirty();//???????
-            //if (RootNode != null)
-            //{
-            //    this.markTaskDirty(RootNode);
-            //}
-			for (int i = DetachedNodes.Count - 1; i > -1; i--)
-			{
-				this.markTaskDirty(DetachedNodes[i]);
-			}
-		}
-
-		private void markTaskDirty(NodeDesigner nodeDesigner)
-		{
-			nodeDesigner.markDirty();
-            //if (nodeDesigner.IsParent)
-            //{
-				Task parentTask = nodeDesigner.Task;
-				if (parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						if (parentTask.Children[i] != null)
-						{
-							this.markTaskDirty(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner);
-						}
-					}
-				}
-            //}
-		}
-
-		public void selectAll()
-		{
-			for (int i = SelectedNodes.Count - 1; i > -1; i--)
-			{
-				this.deselect(SelectedNodes[i]);
-			}
-            //if (RootNode != null)
-            //{
-            //    this.selectAll(RootNode);
-            //}
-			for (int j = DetachedNodes.Count - 1; j > -1; j--)
-			{
-				this.selectAll(DetachedNodes[j]);
-			}
-		}
-
-        private void selectAll(NodeDesigner nodeDesigner)
-        {
-            this.select(nodeDesigner);
-
-            Task parentTask = nodeDesigner.Task;
-            if (parentTask.Children != null)
-            {
-                for (int i = 0; i < parentTask.Children.Count; i++)
-                {
-                    this.selectAll(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner);
-                }
-            }
-
-        }
-
-		public List<TaskSerializer> copy()
-		{
-			List<TaskSerializer> list = new List<TaskSerializer>();
-			for (int i = 0; i < SelectedNodes.Count; i++)
-			{
-				TaskSerializer taskSerializer;
-				if ((taskSerializer = TaskCopier.CopySerialized(SelectedNodes[i].Task)) != null)
-				{
-                    //if (SelectedNodes[i].IsParent)
-                    //{
-                        Task parentTask = SelectedNodes[i].Task;
-						if (parentTask.Children != null)
-						{
-							List<int> list2 = new List<int>();
-							for (int j = 0; j < parentTask.Children.Count; j++)
-							{
-								int item;
-								if ((item = SelectedNodes.IndexOf(parentTask.Children[j].NodeData.NodeDesigner as NodeDesigner)) != -1)
-								{
-									list2.Add(item);
-								}
-							}
-							taskSerializer.childrenIndex = list2;
-						}
-                    //}
-					list.Add(taskSerializer);
-				}
-			}
-			if (list.Count <= 0)
-			{
-				return null;
-			}
-			return list;
-		}
-
-		public bool paste(BehaviorSource behaviorSource, List<TaskSerializer> copiedTasks)
-		{
-			if (copiedTasks == null || copiedTasks.Count == 0)
-			{
-				return false;
-			}
-			this.clearNodeSelection();
-			this.clearConnectionSelection();
-			List<NodeDesigner> list = new List<NodeDesigner>();
-			for (int i = 0; i < copiedTasks.Count; i++)
-			{
-				TaskSerializer taskSerializer = copiedTasks[i];
-				NodeDesigner nodeDesigner = this.addNode(behaviorSource, taskSerializer.taskType, taskSerializer.position);
-				for (int j = 0; j < taskSerializer.fieldInfo.Length; j++)
-				{
-					if (taskSerializer.fieldInfo[j].FieldType.IsSubclassOf(typeof(SharedVariable)))
-					{
-						if (taskSerializer.fieldInfo[j].FieldType.IsSubclassOf(typeof(SharedVariable)))
-						{
-							SharedVariable sharedVariable = taskSerializer.fieldValue[j] as SharedVariable;
-							if (sharedVariable != null)
-							{
-								SharedVariable sharedVariable2 = behaviorSource.GetVariable(sharedVariable.name);
-								if (sharedVariable2 == null)
-								{
-									sharedVariable2 = (ScriptableObject.CreateInstance(sharedVariable.GetType()) as SharedVariable);
-									sharedVariable2.SetValue(sharedVariable.GetValue());
-									sharedVariable2.IsShared = sharedVariable.IsShared;
-								}
-								taskSerializer.fieldInfo[j].SetValue(nodeDesigner.Task, sharedVariable2);
-							}
-						}
-					}
-					else
-					{
-						taskSerializer.fieldInfo[j].SetValue(nodeDesigner.Task, taskSerializer.fieldValue[j]);
-					}
-				}
-				nodeDesigner.Task.NodeData.FriendlyName = taskSerializer.friendlyName;
-				nodeDesigner.Task.NodeData.Comment = taskSerializer.comment;
-				list.Add(nodeDesigner);
-				this.select(nodeDesigner);
-			}
-			for (int k = 0; k < copiedTasks.Count; k++)
-			{
-				TaskSerializer taskSerializer2 = copiedTasks[k];
-				if (taskSerializer2.childrenIndex != null)
-				{
-					for (int l = 0; l < taskSerializer2.childrenIndex.Count; l++)
-					{
-						NodeDesigner nodeDesigner2 = list[k];
-						NodeConnection nodeConnection = ScriptableObject.CreateInstance<NodeConnection>();
-						nodeConnection.loadConnection(nodeDesigner2, NodeConnectionType.Outgoing);
-						nodeDesigner2.addChildNode(list[taskSerializer2.childrenIndex[l]], nodeConnection, false);
-						DetachedNodes.Remove(list[taskSerializer2.childrenIndex[l]]);
-					}
-				}
-			}
-			this.save(behaviorSource);
-			return true;
-		}
-
-		public void identifyNode(NodeDesigner nodeDesigner)
-		{
-			nodeDesigner.identifyNode();
-		}
-    
-        /// <summary>
-        /// ÊÇ·ñÓĞ¸ù½Úµã
-        /// </summary>
-        /// <returns></returns>
-		public bool hasRootNode()
-		{
-			if (DetachedNodes == null || DetachedNodes.Count<=0)
-            {
-                return false;
-            }
-            return true;
-		}
-
-        /// <summary>
-        /// ¸ù½ÚµãÎ»ÖÃ
-        /// </summary>
-        /// <returns></returns>
-		public Vector2 rootNodePosition()
-		{
-            if (DetachedNodes != null && DetachedNodes.Count > 0)
-            {
-                return DetachedNodes[0].Task.NodeData.Position;
-            }
-            return Vector2.zero;
-           // return RootNode.Task.NodeData.Position;
-		}
-
-		private void loadNodeSelection(NodeDesigner nodeDesigner)
-		{
-			if (nodeDesigner == null)
-			{
-				return;
-			}
-			if (this.mNodeSelectedID != null && this.mNodeSelectedID.Contains(nodeDesigner.Task.ID))
-			{
-				this.select(nodeDesigner, false);
-			}
-            //if (nodeDesigner.IsParent)
-            //{
-                Task parentTask = nodeDesigner.Task;
-				if (parentTask.Children != null)
-				{
-					for (int i = 0; i < parentTask.Children.Count; i++)
-					{
-						if (parentTask.Children[i] != null)
-						{
-							this.loadNodeSelection(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner);
-						}
-					}
-				}
-            //}
-		}
-
-		
-
-
-        #region »æÖÆ½ÚµãºÍÁ¬Ïß
-        /// <summary>
-        ///  »æÖÆ½Úµã
-        /// </summary>
-        /// <param name="mousePosition"></param>
-        /// <param name="offset"></param>
-        /// <param name="graphZoom"></param>
-        /// <returns></returns>
-        public bool drawNodes(Vector2 mousePosition, Vector2 offset, float graphZoom)
-        {
-            bool result = false;
-            if (DetachedNodes == null || DetachedNodes.Count<=0) { return false; }
-
-            ////»æÖÆ¸ù½Úµã
-            //this.drawNodeConnectionChildren(RootNode, offset, graphZoom, RootNode.Task.NodeData.Disabled);//»æÖÆ¸ù½ÚµãµÄÁ¬Ïß
-            //result = this.drawNodeChildren(RootNode, offset, RootNode.Task.NodeData.Disabled);//»æÖÆ½Úµã
-
-            //»æÖÆÕıÔÚÁ¬½ÓµÄÏß£¨Êó±êÍÏ¶¯µÄÁ¬Ïß£©
-            if (mousePosition != new Vector2(-1f, -1f) && ActiveNodeConnection != null)
-            {
-                ActiveNodeConnection.HorizontalHeight = (ActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, ActiveNodeConnection.NodeConnectionType).y + mousePosition.y) / 2f;
-                ActiveNodeConnection.drawConnection(
-                    ActiveNodeConnection.OriginatingNodeDesigner.getConnectionPosition(offset, ActiveNodeConnection.NodeConnectionType),
-                    mousePosition,
-                    graphZoom,
-                    ActiveNodeConnection.NodeConnectionType == NodeConnectionType.Outgoing && ActiveNodeConnection.OriginatingNodeDesigner.isDisabled());
-            }
-            //»æÖÆÎ´Á¬ÏßµÄ½Úµã
-            for (int i = 0; i < DetachedNodes.Count; i++)
-            {
-                //»æÖÆ½ÚµãÒ»ÏÂËùÓĞ½ÚµãµÄÁ¬Ïß
-                this.drawNodeConnectionChildren(DetachedNodes[i], offset, graphZoom, DetachedNodes[i].Task.NodeData.Disabled);
-
-                //»æÖÆ×Ô¼ººÍ×Ô¼ºµÄ×Ó½Úµã
-                if (this.drawNodeChildren(DetachedNodes[i], offset, DetachedNodes[i].Task.NodeData.Disabled))
-                {
-                    result = true;
-                }
-
-                this.drawNodeCommentChildren(DetachedNodes[i], offset);
-            }
-            //»æÖÆÑ¡ÖĞµÄ½Úµã
-            for (int l = 0; l < SelectedNodes.Count; l++)
-            {
-                if (SelectedNodes[l].drawNode(offset, true, SelectedNodes[l].isDisabled()))
-                {
-                    result = true;
-                }
-            }
-            //»æÖÆÑ¡ÖĞµÄÁ¬Ïß
-            for (int j = 0; j < SelectedNodeConnections.Count; j++)
-            {
-                SelectedNodeConnections[j].drawConnection(offset, graphZoom, SelectedNodeConnections[j].OriginatingNodeDesigner.isDisabled());
-            }
-            return result;
-        }
-
-        private bool drawNodeChildren(NodeDesigner nodeDesigner, Vector2 offset, bool disabledNode)
-        {
-            if (nodeDesigner == null)
-            {
-                return false;
-            }
-            bool result = false;
-            if (nodeDesigner.drawNode(offset, false, disabledNode))
+            //ç»˜åˆ¶è‡ªå·±å’Œè‡ªå·±çš„å­èŠ‚ç‚¹
+            if(this.drawNodeChildren(DetachedNodes[i], offset, graphZoom, DetachedNodes[i].NodeData.Disabled))
             {
                 result = true;
             }
-            //if (nodeDesigner.IsParent)
-            //{
-                Task parentTask = nodeDesigner.Task;
-                if (!parentTask.NodeData.Collapsed && parentTask.Children != null)
-                {
-                    for (int i = parentTask.Children.Count - 1; i > -1; i--)
-                    {
-                        if (parentTask.Children[i] != null && this.drawNodeChildren(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner, offset, parentTask.NodeData.Disabled || disabledNode))
-                        {
-                            result = true;
-                        }
-                    }
-                }
-            //}
-            return result;
         }
-        /// <summary>
-        /// »æÖÆ½Úµãµ½¶ù×Ó½ÚµãµÄÁ¬Ïß
-        /// </summary>
-        /// <param name="nodeDesigner"></param>
-        /// <param name="offset"></param>
-        /// <param name="graphZoom"></param>
-        /// <param name="disabledNode"></param>
-        private void drawNodeConnectionChildren(NodeDesigner nodeDesigner, Vector2 offset, float graphZoom, bool disabledNode)
+        return result;
+
+    }
+
+    public bool drawNodeChildren(Task task, Vector2 offset, float graphZoom, bool disabled)
+    {
+        //ç»˜åˆ¶è‡ªå·±
+        task.DrawNode(offset,  disabled);
+
+        //ç»˜åˆ¶å¤–æ¥å£
+        foreach (var item in task.OutLinks)
         {
-            if (nodeDesigner == null)
-            {
-                return;
-            }
+            item.Value.DrawLine(offset, graphZoom);//ç»˜åˆ¶å¤–æ¥å£çš„è¿çº¿
 
-            //if (nodeDesigner.taskName == "Entry Task") { Debug.Log("isRootDisplay:" + nodeDesigner.Task.NodeData.Collapsed); }
-
-
-            if (!nodeDesigner.Task.NodeData.Collapsed)
-            {
-                nodeDesigner.drawNodeConnection(offset, graphZoom, nodeDesigner.Task.NodeData.Disabled || disabledNode);
-                //if (nodeDesigner.IsParent)
-                //{
-                    Task parentTask = nodeDesigner.Task;
-                    if (parentTask.Children != null)
-                    {
-                        for (int i = 0; i < parentTask.Children.Count; i++)
-                        {
-                            if (parentTask.Children[i] != null)
-                            {
-                                this.drawNodeConnectionChildren(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner, offset, graphZoom, parentTask.NodeData.Disabled || disabledNode);
-                            }
-                        }
-                    }
-                //}
+            foreach (var child in item.Value.Childs)
+            {//ç»˜åˆ¶å­æ¨¡å—
+                drawNodeChildren(child, offset, graphZoom, disabled);
             }
         }
+        return true;
 
-        private void drawNodeCommentChildren(NodeDesigner nodeDesigner, Vector2 offset)
+    }
+
+
+
+    #endregion
+
+    #region æŸ¥æ‰¾ç»“ç‚¹
+    /// <summary>
+    /// å¯»æ‰¾ç‚¹æ‰€åœ¨çš„ä»»åŠ¡èŠ‚ç‚¹
+    /// </summary>
+    /// <param name="point"></param>
+    /// <param name="offset"></param>
+    /// <returns></returns>
+    public Task nodeAt(Vector2 point, Vector2 offset)
+    {
+        if (DetachedNodes == null || DetachedNodes.Count <= 0)
         {
-            if (nodeDesigner == null)
-            {
-                return;
-            }
-            nodeDesigner.drawNodeComment(offset);
-            //if (nodeDesigner.IsParent)
-            //{
-                Task parentTask = nodeDesigner.Task;
-                if (!parentTask.NodeData.Collapsed && parentTask.Children != null)
-                {
-                    for (int i = 0; i < parentTask.Children.Count; i++)
-                    {
-                        if (parentTask.Children[i] != null)
-                        {
-                            this.drawNodeCommentChildren(parentTask.Children[i].NodeData.NodeDesigner as NodeDesigner, offset);
-                        }
-                    }
-                }
-            //}
+            return null;
         }
-
-        #endregion
-
-        #region ĞòÁĞ»¯
-        /// <summary>
-        /// ±£´æ
-        /// </summary>
-        /// <param name="behaviorSource"></param>
-        public void save(BehaviorSource behaviorSource)
+        Task result;
+        for (int j = DetachedNodes.Count - 1; j > -1; j--)
         {
-            if (DetachedNodes == null || DetachedNodes.Count <= 0)
+            if (DetachedNodes[j] != null && (result = nodeChildrenAt(DetachedNodes[j], point, offset)) != null)
             {
-                return;
-            }
-            List<Task> list = new List<Task>();
-            for (int i = 0; i < DetachedNodes.Count; i++)
-            {
-                list.Add(DetachedNodes[i].Task);
-            }
-            behaviorSource.save(list);
-        }
-
-        /// <summary>
-        /// ¼ÓÔØ
-        /// </summary>
-        /// <param name="behaviorSource"></param>
-        /// <param name="loadPrevBehavior"></param>
-        /// <param name="nodePosition"></param>
-        /// <returns></returns>
-        public bool Load(BehaviorSource behaviorSource, bool loadPrevBehavior, Vector2 nodePosition)
-        {
-            //behaviorSource.CheckForJSONSerialization(behaviorSource.Owner != null && (PrefabUtility.GetPrefabType(behaviorSource.Owner.GetObject()) == PrefabType.Prefab || PrefabUtility.GetPrefabType(behaviorSource.Owner.GetObject()) == PrefabType.PrefabInstance));
-            //if (behaviorSource.DetachedTasks == null)
-            //{
-            //    this.clear(false);
-            //    return false;
-            //}
-            //if (loadPrevBehavior)
-            //{
-            //    SelectedNodes.Clear();
-            //    SelectedNodeConnections.Clear();
-            //    if (this.mPrevNodeSelectedID != null)
-            //    {
-            //        for (int i = 0; i < this.mPrevNodeSelectedID.Length; i++)
-            //        {
-            //            this.mNodeSelectedID.Add(this.mPrevNodeSelectedID[i]);
-            //        }
-            //        this.mPrevNodeSelectedID = null;
-            //    }
-            //}
-            //else
-            //{
-            //    this.clear(false);
-            //}
-            //this.mNextTaskID = 0;
-            ////RootNode = null;
-            //DetachedNodes.Clear();
-            //Task task;
-            //List<Task> list;
-            //behaviorSource.load(out list);
-            //int num = BehaviorDesignerUtility.JSONTaskCount(behaviorSource.Serialization);
-            //if (num > 0)
-            //{
-            //    int num2 = BehaviorDesignerUtility.TaskCount(behaviorSource);
-            //    if (num2 != num)
-            //    {
-            //        behaviorSource.CheckForJSONSerialization(true);
-            //        behaviorSource.load(out list);
-            //    }
-            //}
-
-            ////if (task != null)
-            ////{//¼ÓÔØ¸ù½Úµã
-            ////    RootNode = ScriptableObject.CreateInstance<NodeDesigner>();
-            ////    RootNode.ResetNodeConnection();//ÖØÖÃÁ¬½Ó
-            ////    RootNode.loadTask(task, ref this.mNextTaskID);//¼ÓÔØ½ÚµãºÍ½ÚµãµÄ×Ó½Úµã
-            ////    RootNode.RootDisplay();//²ÉÓÃ¸ù½ÚµãÏÔÊ¾µÄ·½Ê½ÏÔÊ¾
-
-            ////    this.loadNodeSelection(RootNode);
-            ////}
-            //if (list != null)
-            //{
-            //    for (int j = 0; j < list.Count; j++)
-            //    {
-            //        NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
-            //        nodeDesigner.loadTask(list[j], ref this.mNextTaskID);
-            //        DetachedNodes.Add(nodeDesigner);
-            //        this.loadNodeSelection(nodeDesigner);
-            //    }
-            //}
-            return true;
-        }
-        public void Load(BehaviorSource data)
-        {
-            clear();
-            DetachedNodes.Clear();
-            List<Task> list=data.GetTasks();
-            if (list != null)
-            {
-                for (int j = 0; j < list.Count; j++)
-                {
-                    NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
-                    nodeDesigner.loadTask(list[j], ref this.mNextTaskID);
-                    DetachedNodes.Add(nodeDesigner);
-                    loadNodeSelection(nodeDesigner);
-                }
+                return result;
             }
         }
-        public void clear()
+        return null;
+    }
+
+    public Task nodeChildrenAt(Task nodeDesigner, Vector2 point, Vector2 offset)
+    {
+        if (nodeDesigner.contains(point, offset, true))
         {
-
-            this.mPrevNodeSelectedID = null;
-
-            this.mNodeSelectedID.Clear();
-            SelectedNodes.Clear();
-            SelectedNodeConnections.Clear();
-            DetachedNodes = new List<NodeDesigner>();
-        }
-        #endregion
-
-        #region Ìí¼Ó/É¾³ı ½Úµã
-        /// <summary>
-        /// Ìí¼ÓÒ»¸ö½Úµã
-        /// </summary>
-        /// <param name="behaviorSource"></param>
-        /// <param name="type"></param>
-        /// <param name="position"></param>
-        /// <returns></returns>
-        public NodeDesigner addNode(BehaviorSource behaviorSource, Type type, Vector2 position)
-        {
-            BehaviorUndo.RegisterUndo("Add Task", this, true, true);
-
-            Task task;
-
-
-            task = (ScriptableObject.CreateInstance(type) as Task);
-            if (task == null)
-            {
-                Debug.LogError(string.Format("Unable to create task of type {0}. Is the class name the same as the file name?", type));
-                return null;
-            }
-
-            //±à¼­Æ÷´´½¨Ò»¸öui½Úµã
-            NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
-            nodeDesigner.loadNode(task, behaviorSource, position, ref this.mNextTaskID);
-
-
-            DetachedNodes.Add(nodeDesigner);
             return nodeDesigner;
         }
-        /// <summary>
-        /// É¾³ı½Úµã
-        /// </summary>
-        /// <param name="behaviorSource"></param>
-        /// <returns></returns>
-        public bool delete(BehaviorSource behaviorSource)
+        Task result = null;
+        if (!nodeDesigner.NodeData.Collapsed && nodeDesigner.OutLinks.Count > 0)
         {
-            BehaviorUndo.RegisterUndo("Delete", this, true, true);
-            //BehaviorUndo.RegisterUndo("Delete", behaviorSource.Owner.GetObject(), false, true);
-            bool flag = false;
-            if (SelectedNodeConnections != null)
+            foreach (var item in nodeDesigner.OutLinks)
             {
-                for (int i = 0; i < SelectedNodeConnections.Count; i++)
+                foreach (var child in item.Value.Childs)
                 {
-                    this.removeConnection(SelectedNodeConnections[i], "Delete");
-                }
-                SelectedNodeConnections.Clear();
-                flag = true;
-            }
-            if (SelectedNodes != null)
-            {
-                //É¾³ıÑ¡ÖĞµÄ½Úµã
-                for (int j = 0; j < SelectedNodes.Count; j++)
-                {
-                    this.removeNode(SelectedNodes[j]);
-                }
-                SelectedNodes.Clear();
-                flag = true;
-            }
-            if (flag)
-            {
-                this.mNextTaskID = 0;
-                //this.mEntryTask.setID(ref this.mNextTaskID);//???
-                //if (RootNode != null)
-                //{
-                //    RootNode.setID(ref this.mNextTaskID);
-                //}
-                for (int k = 0; k < DetachedNodes.Count; k++)
-                {
-                    DetachedNodes[k].setID(ref this.mNextTaskID);
-                }
-                this.save(behaviorSource);
-            }
-            return flag;
-        }
-        /// <summary>
-        /// É¾³ıÒ»¸ö½Úµã
-        /// </summary>
-        /// <param name="nodeDesigner"></param>
-        public void removeNode(NodeDesigner nodeDesigner)
-        {
-            if (nodeDesigner.IsRootDisplay)
-            {
-                return;
-            }
-            //if (nodeDesigner.IsParent)
-            //{
-                for (int i = 0; i < nodeDesigner.OutgoingNodeConnections.Count; i++)
-                {
-                    NodeDesigner destinationNodeDesigner = nodeDesigner.OutgoingNodeConnections[i].DestinationNodeDesigner;
-                    BehaviorUndo.RegisterUndo("Delete", destinationNodeDesigner, false, true);
-                    DetachedNodes.Add(destinationNodeDesigner);
-                    destinationNodeDesigner.ParentNodeDesigner = null;
-                }
-            //}
-            if (nodeDesigner.ParentNodeDesigner != null)
-            {
-                BehaviorUndo.RegisterUndo("Delete", nodeDesigner.ParentNodeDesigner, false, true);
-                BehaviorUndo.RegisterCompleteUndo("Delete", nodeDesigner.ParentNodeDesigner.Task);
-                nodeDesigner.ParentNodeDesigner.removeChildNode(nodeDesigner);
-            }
-            //if (RootNode != null && RootNode.Equals(nodeDesigner))
-            //{
-            //    RootNode.removeChildNode(nodeDesigner);
-            //    RootNode = null;
-            //}
-            bool flag = false;
-            bool flag2 = false;
-            FieldInfo[] fields = nodeDesigner.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            for (int j = 0; j < fields.Length; j++)
-            {
-                if ((!fields[j].IsPrivate || fields[j].GetCustomAttributes(typeof(SerializeField), false).Length != 0) && TaskInspector.isFieldLinked(fields[j]))
-                {
-                    if (fields[j].FieldType.IsArray)
+                    result = nodeChildrenAt(child, point, offset);
+                    if (result != null)
                     {
-                        Task[] array = fields[j].GetValue(nodeDesigner.Task) as Task[];
-                        if (array != null)
-                        {
-                            for (int k = array.Length - 1; k > -1; k--)
-                            {
-                                TaskInspector.referenceTasks(array[k], nodeDesigner.Task, fields[j], ref flag, ref flag2, false, false, false);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Task task = fields[j].GetValue(nodeDesigner.Task) as Task;
-                        if (task != null)
-                        {
-                            TaskInspector.referenceTasks(task, nodeDesigner.Task, fields[j], ref flag, ref flag2, false, false, false);
-                        }
+                        return result;
                     }
                 }
             }
-            DetachedNodes.Remove(nodeDesigner);
-            BehaviorUndo.DestroyObject(nodeDesigner.Task, false);
-            BehaviorUndo.DestroyObject(nodeDesigner, false);
         }
-        #endregion
+        return result;
+    }
+
+    #endregion
+
+    #region é€‰ä¸­èŠ‚ç‚¹
+     /// <summary>
+     /// æ˜¯å¦é€‰ä¸­äº†èŠ‚ç‚¹
+     /// </summary>
+     /// <param name="node"></param>
+     /// <returns></returns>
+    public bool isSelected(Task node)
+    {
+        return SelectedNodes.Contains(node);
+    }
+    /// <summary>
+    /// è®©èŠ‚ç‚¹å¤„äºé€‰ä¸­çŠ¶æ€
+    /// </summary>
+    /// <param name="nodeDesigner"></param>
+    public void select(Task node)
+    {
+        SelectedNodes.Add(node);
+        node.mSelected = true;
+        if (SelectedNodes.Count == 1)
+        {//å±æ€§æ æ˜¾ç¤ºèŠ‚ç‚¹å±æ€§
+            ReferencedTask(SelectedNodes[0], true);
+        }
+    }
+    /// <summary>
+    /// æ¸…ç©ºæ‰€æœ‰é€‰ä¸­çš„èŠ‚ç‚¹
+    /// </summary>
+    public void clearNodeSelection()
+    {
+        for (int i = 0; i < SelectedNodes.Count; i++)
+        {
+            SelectedNodes[i].mSelected = false;
+        }
+        SelectedNodes.Clear();
+        ClearReferencedTask();
+    }
+    #endregion
+
+    #region å±æ€§æ 
+    /// <summary>
+    /// å±æ€§æ æ˜¾ç¤ºä¸€ä¸ªä»»åŠ¡èŠ‚ç‚¹çš„å±æ€§
+    /// </summary>
+    /// <param name="task"></param>
+    /// <param name="indicate"></param>
+    private void ReferencedTask(Task task, bool indicate)
+    {
+        List<Task> referencedTasks = TaskInspector.GetReferencedTasks(task);
+        //if (referencedTasks != null && referencedTasks.Count > 0)
+        //{
+        //    for (int i = 0; i < referencedTasks.Count; i++)
+        //    {
+        //        if (referencedTasks[i] != null && referencedTasks[i].NodeData != null)
+        //        {
+        //            Task nodeDesigner = referencedTasks[i].NodeData.NodeDesigner as NodeDesigner;
+        //            if (nodeDesigner != null)
+        //            {
+        //                nodeDesigner.ShowReferenceIcon = indicate;
+        //            }
+        //        }
+        //    }
+        //}
+    }
+    /// <summary>
+    /// å±æ€§æ æ˜¾ç¤ºç©º
+    /// </summary>
+    /// <param name="task"></param>
+    /// <param name="indicate"></param>
+    private void ClearReferencedTask()
+    {
+        
+    }
+
+    #endregion
+
+    #region æ‹–åŠ¨èŠ‚ç‚¹
+    /// <summary>
+    /// æ‹–åŠ¨èŠ‚ç‚¹
+    /// </summary>
+    /// <param name="delta"></param>
+    /// <param name="dragChildren"></param>
+    /// <param name="hasDragged"></param>
+    /// <returns></returns>
+    public bool dragSelectedNodes(Vector2 delta)
+    {
+        if (SelectedNodes.Count == 0)
+        {
+            return false;
+        }
+        for (int i = 0; i < SelectedNodes.Count; i++)
+        {
+           movePosition(SelectedNodes[i],delta);
+        }
+        return true;
+    }
+    //---------------------
+    /// <summary>
+    /// ç§»åŠ¨æ¨¡å—
+    /// </summary>
+    /// <param name="delta"></param>
+    public void movePosition(Task task, Vector2 delta)
+    {
+        task.NodeData.Position += delta;
+
+        //====å­èŠ‚ç‚¹ä¹ŸåŠ¨
+        foreach (var item in task.OutLinks)
+        {
+            for (int j = 0; j < item.Value.Childs.Count; j++)
+            {
+                movePosition(item.Value.Childs[j], delta);
+            }
+        }
+    }
+    #endregion
+
+    /// <summary>
+    /// è¿æ¥ä¸¤ä¸ªèŠ‚ç‚¹
+    /// </summary>
+    /// <param name="behaviorSource"></param>
+    /// <param name="nodeDesigner">ç»“æŸæ¨¡å—</param>
+    public void connectNodes(Task node)
+    {
+        NodeConnection nodeConnection = ActiveNodeConnection;
+        ActiveNodeConnection = null;
+        if (nodeConnection != null && !nodeConnection.OriginatingNodeDesigner.Equals(node))
+        {//ä¸æ˜¯è¿æ¥åˆ°è‡ªå·±
+            Task originating = nodeConnection.OriginatingNodeDesigner;
+            if (nodeConnection.NodeConnectionType == NodeConnectionType.Outgoing)
+            {
+                originating.AddConnection(node, nodeConnection, true);
+            }
+            DetachedNodes.Remove(nodeConnection.DestinationNodeDesigner);
+        }
+    }
+
+    public void clear()
+    {
+
+        //this.mPrevNodeSelectedID = null;
+
+        //this.mNodeSelectedID.Clear();
+        //SelectedNodes.Clear();
+        //SelectedNodeConnections.Clear();
+        //DetachedNodes = new List<NodeDesigner>();
     }
 }
+

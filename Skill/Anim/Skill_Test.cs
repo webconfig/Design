@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
 
-[TaskCategory("动画")]
-[TaskName("anim")]
+[TaskCategory("Test")]
+[TaskName("test")]
 [TaskDescription("播放动画-Triger方式触发")]
-public class Skill_Anim : Skill_Time,IDeepCopy
+public class Skill_Test : Skill_Time, IDeepCopy
 {
     /// <summary>
     /// 动画
@@ -26,9 +26,7 @@ public class Skill_Anim : Skill_Time,IDeepCopy
     public override void Init(Skill Skill, XmlNode data)
     {
         base.Init(Skill, data);
-        Anim = data.Attributes["anim"].InnerText;
-        AnimSpeed = Skill_Manager.GetXmlAttrFloat(data, "speed");
-        if (AnimSpeed < 0) { AnimSpeed = 1; }
+
         State = SkillState.Init;
     }
 
@@ -37,25 +35,7 @@ public class Skill_Anim : Skill_Time,IDeepCopy
     /// </summary>
     public override void Run(object Data)
     {
-        //if (Skill_Manager.Instance.CheckDead(skill.owner.gameObject)) { return; }
 
-
-        //base.Run(Data);
-
-        //if (Prev_Data != null && Prev_Data is GameObject)
-        //{
-        //    player = Prev_Data as GameObject;
-        //}
-        //else
-        //{
-        //    player = skill.owner.gameObject;
-        //}
-        //if (Skill_Manager.Instance.CheckDead(player)) { return; }
-
-
-        //playerscript = player.GetComponent<Character>();
-        //TimeDealy += Skill_Anim_TimeDealy;
-        //TimeLifeTime += Skill_Anim_TimeLifeTime;
         State = SkillState.Init;
     }
 
@@ -115,6 +95,5 @@ public class Skill_Anim : Skill_Time,IDeepCopy
     #endregion
 
 }
-public delegate void PlayAnim(AnimatorStateInfo anim_state, string anim);
 
 

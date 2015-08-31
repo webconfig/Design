@@ -4,4 +4,8 @@
 interface IDeepCopy
 {
     Skill_Base DeepCopy();
+
+    Skill_Base CopyObj();
+
+    void CopyData(Skill_Base obj);
 }
