@@ -12,10 +12,6 @@ public abstract class Task : ScriptableObject
     public int ID;
     [System.NonSerialized]
     public int ReferenceID;
-    /// <summary>
-    /// 节点的任务名称
-    /// </summary>
-    public string taskName = "";
 
     /// <summary>
     /// 外接口
@@ -62,18 +58,26 @@ public abstract class Task : ScriptableObject
 
     #region 编辑器相关
     /// <summary>
+    /// 节点的任务名称
+    /// </summary>
+    [System.NonSerialized]
+    public string taskName = "";
+    /// <summary>
     /// 连接外部的线
     /// </summary>
+    [System.NonSerialized]
     public List<NodeConnection> InConnections = new List<NodeConnection>();
     #region GUI
     /// <summary>
     /// 宽度
     /// </summary>
+    [System.NonSerialized]
     public float Width = 100;
 
     /// <summary>
     /// 高度
     /// </summary>
+    [System.NonSerialized]
     public float Height = 40;
     public static readonly int TopConnectionHeight = 14;
     public static readonly int BottomConnectionHeight = 16;
@@ -84,6 +88,7 @@ public abstract class Task : ScriptableObject
     /// <summary>
     /// 是否选中
     /// </summary>
+    [System.NonSerialized]
     public bool mSelected;
 
     public virtual void DrawNode(Vector2 offset,  bool disabled)

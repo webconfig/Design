@@ -44,7 +44,7 @@ public class DesignerNodeData
 
     public void serialize_ui(Dictionary<string, string> dictionary)
     {
-        dictionary.Add("Position", Position.ToString());
+        dictionary.Add("Position",Skill_Manager.ToString(Position));
         if (this.FriendlyName.Length > 0)
         {
             dictionary.Add("FriendlyName", this.FriendlyName);

@@ -7,15 +7,26 @@ using System.Text;
 /// 数据源
 /// </summary>
 [Serializable]
-public class SkillData
+public class SkillData : UnityEngine.ScriptableObject
 {
     public int Id=0;
-    public string Name="";
-
+    public string Name="Skill";
+    public float CD=0;
 
     /// <summary>
     /// 数据节点
     /// </summary>
-    public List<Task> Datas;
+    [System.NonSerialized]
+    public List<Task> Datas=new List<Task>();
+
+    /// <summary>
+    /// 保存
+    /// </summary>
+    /// <param name="rootTask"></param>
+    /// <param name="detachedTasks"></param>
+    public void save(List<Task> detachedTasks)
+    {
+        Datas = detachedTasks;
+    }
 }
 

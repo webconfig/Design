@@ -62,6 +62,23 @@ public class GraphDesigner : ScriptableObject
         DetachedNodes.Add(task);
         return task;
     }
+    /// <summary>
+    /// 保存
+    /// </summary>
+    /// <param name="behaviorSource"></param>
+    public void save(SkillData _data)
+    {
+        if (DetachedNodes == null || DetachedNodes.Count <= 0)
+        {
+            return;
+        }
+        List<Task> list = new List<Task>();
+        for (int i = 0; i < DetachedNodes.Count; i++)
+        {
+            list.Add(DetachedNodes[i]);
+        }
+        _data.save(list);
+    }
     #endregion
 
     #region GUI
@@ -93,7 +110,6 @@ public class GraphDesigner : ScriptableObject
         return result;
 
     }
-
     public bool drawNodeChildren(Task task, Vector2 offset, float graphZoom, bool disabled)
     {
         //绘制自己
@@ -112,9 +128,6 @@ public class GraphDesigner : ScriptableObject
         return true;
 
     }
-
-
-
     #endregion
 
     #region 查找结点

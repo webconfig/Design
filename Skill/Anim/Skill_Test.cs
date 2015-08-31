@@ -18,8 +18,6 @@ public class Skill_Test : Skill_Time, IDeepCopy
     /// </summary>
     public float AnimSpeed;
 
-
-
     /// <summary>
     /// 初始化
     /// </summary>
@@ -35,7 +33,6 @@ public class Skill_Test : Skill_Time, IDeepCopy
     /// </summary>
     public override void Run(object Data)
     {
-
         State = SkillState.Init;
     }
 
@@ -91,6 +88,15 @@ public class Skill_Test : Skill_Time, IDeepCopy
         base.Serialize(dictionary);
         dictionary.Add("anim", Anim);
         dictionary.Add("speed", AnimSpeed.ToString());
+    }
+    public override void GetOutLinks(List<TaskOutLink> datas)
+    {
+        TaskOutLink tol = new TaskOutLink();
+        tol.name = "ok";
+        datas.Add(tol);
+        TaskOutLink tol2 = new TaskOutLink();
+        tol2.name = "no";
+        datas.Add(tol2);
     }
     #endregion
 
