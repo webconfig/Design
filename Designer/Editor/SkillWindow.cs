@@ -405,13 +405,13 @@ public class SkillWindow : EditorWindow
             case EventType.DragExited:
             case EventType.ContextClick:
                 break;
-            //case EventType.scrollWheel:
-            //    if (this.mouseZoom())
-            //    {
-            //        Event.current.Use();
-            //        return;
-            //    }
-            //    break;
+            case EventType.scrollWheel:
+                if (this.mouseZoom())
+                {
+                    Event.current.Use();
+                    return;
+                }
+                break;
             case EventType.ValidateCommand:
                 if (this.propertiesInspectorHasFocus() || EditorApplication.isPlaying)
                 {
@@ -822,4 +822,28 @@ public class SkillWindow : EditorWindow
         //this.mGraphDesigner.delete(this.mActiveBehaviorSource);
     }
     #endregion
+
+
+    public static readonly float GraphZoomMax = 1f;
+
+    public static readonly float GraphZoomMin = 0.4f;
+
+    public static readonly float GraphZoomSensitivity = 150f;
+    private bool mouseZoom()
+    {
+        Vector2 vector;
+        if (!this.getMousePositionInGraph(out vector))
+        {
+            return false;
+        }
+        float num = -Event.current.delta.y / GraphZoomSensitivity;
+        this.mGraphZoom += num;
+        this.mGraphZoom = Mathf.Clamp(this.mGraphZoom,GraphZoomMin, GraphZoomMax);
+        Vector2 vector2;
+        this.getMousePositionInGraph(out vector2);
+        this.mGraphOffset += vector2 - vector;
+        this.mGraphScrollPosition += vector2 - vector;
+        //this.mGraphDesigner.graphDirty();
+        return true;
+    }
 }
