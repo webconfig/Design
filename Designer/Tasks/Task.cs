@@ -13,6 +13,23 @@ public abstract class Task : ScriptableObject
     [System.NonSerialized]
     public int ReferenceID;
 
+    
+
+    #region 编辑器相关
+    public bool IsInit = false;
+
+    /// <summary>
+    /// 节点的任务名称
+    /// </summary>
+    [System.NonSerialized]
+    public string taskName = "";
+    /// <summary>
+    /// 连接外部的线
+    /// </summary>
+    [System.NonSerialized]
+    public List<NodeConnection> InConnections = new List<NodeConnection>();
+
+    #region 数据
     /// <summary>
     /// 外接口
     /// </summary>
@@ -49,24 +66,13 @@ public abstract class Task : ScriptableObject
     {
 
     }
-
-
     public virtual void GetOutLinks(List<TaskOutLink> datas)
     {
         return;
     }
+    #endregion
 
-    #region 编辑器相关
-    /// <summary>
-    /// 节点的任务名称
-    /// </summary>
-    [System.NonSerialized]
-    public string taskName = "";
-    /// <summary>
-    /// 连接外部的线
-    /// </summary>
-    [System.NonSerialized]
-    public List<NodeConnection> InConnections = new List<NodeConnection>();
+
     #region GUI
     /// <summary>
     /// 宽度
@@ -239,7 +245,7 @@ public abstract class Task : ScriptableObject
 
         NodeData = new DesignerNodeData();
         NodeData.Position = position;
-        this.init();
+        SetName();
         NodeData.FriendlyName = this.taskName;
 
 
@@ -260,7 +266,7 @@ public abstract class Task : ScriptableObject
             OutLinks.Add(datas[i].name, datas[i]);
         }
     }
-    private void init()
+    private void SetName()
     {
         TaskNameAttribute[] array =this.GetType().GetCustomAttributes(typeof(TaskNameAttribute), false) as TaskNameAttribute[];
         //获取名称
@@ -271,12 +277,48 @@ public abstract class Task : ScriptableObject
     /// </summary>
     /// <param name="childNodeDesigner"></param>
     /// <param name="nodeConnection"></param>
-    public void AddConnection(Task childNodeDesigner, NodeConnection nodeConnection, bool addtodata)
+    public void AddConnection(Task child, NodeConnection Connection, bool addtodata)
     {
-        childNodeDesigner.InConnections.Add(nodeConnection);
-        nodeConnection.DestinationNodeDesigner = childNodeDesigner;
-        nodeConnection.Originating.AddNodeConnection(nodeConnection, addtodata);
+        child.InConnections.Add(Connection);
+        Connection.DestinationNodeDesigner = child;
+        Connection.Originating.AddNodeConnection(Connection, addtodata);
     }
+
+    /// <summary>
+    /// 初始化
+    /// </summary>
+    public void Init()
+    {
+        if (!IsInit)
+        {
+            IsInit = true;
+            float avg_widht = Width / (OutLinks.Count + 1);
+            float width = ConnectionWidth;
+            float height = BottomConnectionHeight + Task.TaskBackgroundShadowSize;
+
+            foreach (var item in OutLinks)
+            {
+                item.Value.Parent = this;
+                item.Value.AverageWidth = avg_widht;
+                item.Value.Width = width;
+                item.Value.Height = height;
+
+
+                foreach(var data in item.Value.Childs)
+                {
+
+                    NodeConnection nodeConnection = ScriptableObject.CreateInstance<NodeConnection>();
+                    nodeConnection.loadConnection(this, NodeConnectionType.Outgoing);
+                    nodeConnection.Originating = item.Value;
+                    nodeConnection.DestinationNodeDesigner = data;
+                    item.Value.AddNodeConnection(nodeConnection, false);
+                    data.InConnections.Add(nodeConnection);
+                    data.Init();
+                }
+            }
+        }
+    }
+
     #endregion
 }
 

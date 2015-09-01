@@ -224,25 +224,6 @@ public class SkillWindow : EditorWindow
     /// </summary>
     public void DrawDataSource()
     {
-        //EditorGUI.BeginChangeCheck();
-
-        //GUILayout.BeginHorizontal(new GUILayoutOption[0]);
-        //EditorGUILayout.LabelField("ID", new GUILayoutOption[] { GUILayout.Width(120f) });
-        //CurrentData.Id = int.Parse(EditorGUILayout.TextField(CurrentData.Id.ToString(), new GUILayoutOption[0]));
-        //GUILayout.EndHorizontal();
-
-        //GUILayout.BeginHorizontal(new GUILayoutOption[0]);
-        //EditorGUILayout.LabelField("Name", new GUILayoutOption[] { GUILayout.Width(120f) });
-        //CurrentData.Name = EditorGUILayout.TextField(CurrentData.Name, new GUILayoutOption[0]);
-        //GUILayout.EndHorizontal();
-
-        //GUILayout.BeginHorizontal(new GUILayoutOption[0]);
-        //EditorGUILayout.LabelField("CD", new GUILayoutOption[] { GUILayout.Width(120f) });
-        //CurrentData.CD = float.Parse(EditorGUILayout.TextField(CurrentData.CD.ToString(), new GUILayoutOption[0]));
-        //GUILayout.EndHorizontal();
-
-        //EditorGUI.EndChangeCheck();
-
         SerializedObject serializedObject = new SerializedObject(CurrentData);
         serializedObject.Update();
         FieldInfo[] fields = CurrentData.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -359,8 +340,8 @@ public class SkillWindow : EditorWindow
     #region 鼠标操作
     private void handleEvents()
     {
-        if (EditorApplication.isCompiling)
-        {//正在编译脚本
+        if (EditorApplication.isCompiling || EditorApplication.isPlaying)
+        {//正在编译脚本或者正在运行
             return;
         }
         switch (Event.current.type)
@@ -402,24 +383,18 @@ public class SkillWindow : EditorWindow
                     }
                 }
                 break;
-            //case EventType.keyDown:
-            //    if (this.propertiesInspectorHasFocus() || EditorApplication.isPlaying)
-            //    {
-            //        return;
-            //    }
-            //    if (Event.current.keyCode == KeyCode.Delete || Event.current.commandName.Equals("Delete"))
-            //    {
-            //        this.deleteNodes();
-            //        Event.current.Use();
-            //        return;
-            //    }
-            //    if (Event.current.keyCode == KeyCode.Escape || Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter)
-            //    {
-            //        this.disableReferenceTasks();
-            //        Event.current.Use();
-            //        return;
-            //    }
-            //    break;
+            case EventType.keyDown:
+                if (this.propertiesInspectorHasFocus())
+                {
+                    return;
+                }
+                if (Event.current.keyCode == KeyCode.Delete || Event.current.commandName.Equals("Delete"))
+                {//删除节点
+                    this.deleteNodes();
+                    Event.current.Use();
+                    return;
+                }
+                break;
             case EventType.keyUp:
             case EventType.repaint:
             case EventType.layout:
@@ -437,59 +412,50 @@ public class SkillWindow : EditorWindow
             //        return;
             //    }
             //    break;
-            //case EventType.ValidateCommand:
-            //    if (this.propertiesInspectorHasFocus() || EditorApplication.isPlaying)
-            //    {
-            //        return;
-            //    }
-            //    if (Event.current.commandName.Equals("Copy") || Event.current.commandName.Equals("Paste") || Event.current.commandName.Equals("Cut") || Event.current.commandName.Equals("SelectAll") || Event.current.commandName.Equals("Duplicate"))
-            //    {
-            //        if (this.propertiesInspectorHasFocus() || EditorApplication.isPlaying)
-            //        {
-            //            return;
-            //        }
-            //        Event.current.Use();
-            //        return;
-            //    }
-            //    break;
-            //case EventType.ExecuteCommand:
-            //    if (this.propertiesInspectorHasFocus() || EditorApplication.isPlaying)
-            //    {
-            //        return;
-            //    }
-            //    if (Event.current.commandName.Equals("Copy"))
-            //    {
-            //        this.copyNodes();
-            //        Event.current.Use();
-            //        return;
-            //    }
-            //    if (Event.current.commandName.Equals("Paste"))
-            //    {
-            //        this.pasteNodes();
-            //        Event.current.Use();
-            //        return;
-            //    }
-            //    if (Event.current.commandName.Equals("Cut"))
-            //    {
-            //        this.cutNodes();
-            //        Event.current.Use();
-            //        return;
-            //    }
-            //    if (Event.current.commandName.Equals("SelectAll"))
-            //    {
-            //        this.mGraphDesigner.selectAll();
-            //        Event.current.Use();
-            //        return;
-            //    }
-            //    if (Event.current.commandName.Equals("Duplicate"))
-            //    {
-            //        this.duplicateNodes();
-            //        Event.current.Use();
-            //    }
-            //    break;
+            case EventType.ValidateCommand:
+                if (this.propertiesInspectorHasFocus() || EditorApplication.isPlaying)
+                {
+                    return;
+                }
+                if (Event.current.commandName.Equals("Copy") || Event.current.commandName.Equals("Paste") || Event.current.commandName.Equals("Cut") || Event.current.commandName.Equals("SelectAll") || Event.current.commandName.Equals("Duplicate"))
+                {
+                    if (this.propertiesInspectorHasFocus() || EditorApplication.isPlaying)
+                    {
+                        return;
+                    }
+                    Event.current.Use();
+                    return;
+                }
+                break;
+            case EventType.ExecuteCommand:
+                if (this.propertiesInspectorHasFocus() || EditorApplication.isPlaying)
+                {
+                    return;
+                }
+                if (Event.current.commandName.Equals("Copy"))
+                {
+                    this.copyNodes();
+                    Event.current.Use();
+                    return;
+                }
+                if (Event.current.commandName.Equals("Paste"))
+                {
+                    this.pasteNodes();
+                    Event.current.Use();
+                    return;
+                }
+                break;
             default:
                 return;
         }
+    }
+    /// <summary>
+    /// 属性菜单栏是否显示点击点的任务的属性
+    /// </summary>
+    /// <returns></returns>
+    private bool propertiesInspectorHasFocus()
+    {
+        return this.mTaskInspector.hasFocus();
     }
     /// <summary>
     /// 鼠标左键按下
@@ -603,6 +569,7 @@ public class SkillWindow : EditorWindow
         return false;
 
     }
+   
     #endregion
 
     public void addTaskCallback(object obj)
@@ -629,7 +596,13 @@ public class SkillWindow : EditorWindow
         //====添加节点
         this.mGraphDesigner.addNode(type, vector);
     }
-
+    /// <summary>
+    /// 删除节点
+    /// </summary>
+    private void deleteNodes()
+    {
+        this.mGraphDesigner.delete(CurrentData);
+    }
     #endregion
 
 
@@ -806,5 +779,47 @@ public class SkillWindow : EditorWindow
         base.Repaint();
     }
     #endregion
+    #endregion
+
+    #region 粘贴复制
+    private List<Task> CopyTasks;
+    /// <summary>
+    /// 复制
+    /// </summary>
+    private void copyNodes()
+    {
+        CopyTasks = mGraphDesigner.copy();
+    }
+
+    private void pasteNodes()
+    {
+        if (CopyTasks == null || CopyTasks.Count <= 0) { return; }
+        for (int j = 0; j < CopyTasks.Count; j++)
+        {
+            PositionAdd(CopyTasks[j], new Vector2(30, 30));
+            CopyTasks[j].Init();
+            mGraphDesigner.DetachedNodes.Add(CopyTasks[j]);
+        }
+        CopyTasks.Clear();
+        mGraphDesigner.clearNodeSelection();
+    }
+
+    private void PositionAdd(Task t, Vector2 p)
+    {
+        t.NodeData.Position += p;
+        foreach (var item in t.OutLinks)
+        {
+            for (int j = 0; j < item.Value.Childs.Count; j++)
+            {
+                PositionAdd(item.Value.Childs[j], p);
+            }
+        }
+    }
+
+    private void cutNodes()
+    {
+        //this.mCopiedTasks = this.mGraphDesigner.copy();
+        //this.mGraphDesigner.delete(this.mActiveBehaviorSource);
+    }
     #endregion
 }

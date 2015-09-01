@@ -92,9 +92,11 @@ public class Skill_Test : Skill_Time, IDeepCopy
     public override void GetOutLinks(List<TaskOutLink> datas)
     {
         TaskOutLink tol = new TaskOutLink();
+        tol.Index = 1;
         tol.name = "ok";
         datas.Add(tol);
         TaskOutLink tol2 = new TaskOutLink();
+        tol2.Index = 2;
         tol2.name = "no";
         datas.Add(tol2);
     }

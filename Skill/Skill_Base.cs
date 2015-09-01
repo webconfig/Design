@@ -167,6 +167,7 @@ public class Skill_Base : Task
     public override void GetOutLinks(List<TaskOutLink> datas)
     {
         TaskOutLink tol = new TaskOutLink();
+        tol.Index = 1;
         tol.name = "n";
         datas.Add(tol);
     }

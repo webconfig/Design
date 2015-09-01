@@ -29,18 +29,16 @@ public class GraphDesigner : ScriptableObject
     public void Load(SkillData data)
     {
         clear();
-        //DetachedNodes.Clear();
-        //List<Task> list = data.GetTasks();
-        //if (list != null)
-        //{
-        //    for (int j = 0; j < list.Count; j++)
-        //    {
-        //        NodeDesigner nodeDesigner = ScriptableObject.CreateInstance<NodeDesigner>();
-        //        nodeDesigner.loadTask(list[j]);
-        //        DetachedNodes.Add(nodeDesigner);
-        //        loadNodeSelection(nodeDesigner);
-        //    }
-        //}
+        DetachedNodes.Clear();
+        List<Task> list = data.Datas;
+        if (list != null)
+        {
+            for (int j = 0; j < list.Count; j++)
+            {
+                list[j].Init();
+                DetachedNodes.Add(list[j]);
+            }
+        }
     }
     /// <summary>
     /// 添加一个节点
@@ -313,6 +311,57 @@ public class GraphDesigner : ScriptableObject
         }
     }
 
+    /// <summary>
+    /// 删除节点
+    /// </summary>
+    /// <param name="behaviorSource"></param>
+    /// <returns></returns>
+    public bool delete(SkillData _data)
+    {
+        bool flag = false;
+        //if (SelectedNodeConnections != null)
+        //{
+        //    for (int i = 0; i < SelectedNodeConnections.Count; i++)
+        //    {
+        //        this.removeConnection(SelectedNodeConnections[i], "Delete");
+        //    }
+        //    SelectedNodeConnections.Clear();
+        //    flag = true;
+        //}
+        if (SelectedNodes != null)
+        {
+            //删除选中的节点
+            for (int j = 0; j < SelectedNodes.Count; j++)
+            {
+                this.removeNode(SelectedNodes[j]);
+            }
+            SelectedNodes.Clear();
+            flag = true;
+        }
+        if (flag)
+        {
+            this.save(_data);
+        }
+        return flag;
+    }
+    /// <summary>
+    /// 删除一个节点
+    /// </summary>
+    /// <param name="nodeDesigner"></param>
+    public void removeNode(Task node)
+    {
+        if (node.InConnections.Count > 0)
+        {//有连接到外部的线
+            for (int i = 0; i < node.InConnections.Count; i++)
+            {//移除连线
+                node.InConnections[i].Originating.RemoveConnection(node.InConnections[i]);
+            }
+        }
+        else
+        {
+            DetachedNodes.Remove(node);
+        }
+    }
     public void clear()
     {
 
@@ -323,5 +372,27 @@ public class GraphDesigner : ScriptableObject
         //SelectedNodeConnections.Clear();
         //DetachedNodes = new List<NodeDesigner>();
     }
+
+
+    #region 复制粘贴
+    public List<Task> copy()
+    {
+        List<Task> result = new List<Task>();
+        for (int i = 0; i < SelectedNodes.Count; i++)
+        {
+            string str_ui = SerializeXml.UI_ToString(SerializeXml.SerializeTask_UI(SelectedNodes[i]));
+            string str_data = "<skill>" + SerializeXml.Data_ToString(SerializeXml.SerializeTask_Data(SelectedNodes[i])) + "</skill>";
+
+            XmlDocument xml_ui = new XmlDocument();
+            xml_ui.LoadXml(str_ui);
+            XmlDocument xml_data = new XmlDocument();
+            xml_data.LoadXml(str_data);
+            Task item = DeserializeXml.DeserializeTask(xml_ui.FirstChild, xml_data.FirstChild.SelectSingleNode(@"*[@id=" + SelectedNodes[i].ID + "]"));
+            result.Add(item);
+
+        }
+        return result;
+    }
+    #endregion
 }
 
