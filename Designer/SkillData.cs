@@ -13,20 +13,42 @@ public class SkillData : UnityEngine.ScriptableObject
     public string Name="Skill";
     public float CD=0;
 
+    [System.NonSerialized]
+    public int index=0;
+
     /// <summary>
     /// 数据节点
     /// </summary>
     [System.NonSerialized]
     public List<Task> Datas=new List<Task>();
 
+
+    #region 变量
     /// <summary>
-    /// 保存
+    /// 变量
     /// </summary>
-    /// <param name="rootTask"></param>
-    /// <param name="detachedTasks"></param>
-    public void save(List<Task> detachedTasks)
+    public Dictionary<string, SharedVariable> Variables=new Dictionary<string,SharedVariable>() ;
+
+
+    public SharedVariable GetVariable(string name)
     {
-        Datas = detachedTasks;
+
+        if (Variables!=null&&Variables.ContainsKey(name))
+        {
+            return Variables[name];
+        }
+
+        return null;
     }
+
+    public void SetVariable(string name, SharedVariable item)
+    {
+        if (!Variables.ContainsKey(name))
+        {
+            Variables.Add(name, item);
+        }
+    }
+    #endregion
+
 }
 

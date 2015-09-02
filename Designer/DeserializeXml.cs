@@ -11,26 +11,37 @@ public class DeserializeXml : UnityEngine.Object
 {
     public static SkillData Deserialize(XmlNode dataui, XmlNode data)
     {
-        SkillData SkillData = ScriptableObject.CreateInstance<SkillData>();
-        SkillData.Name = dataui.Attributes["name"].Value;
-        SkillData.Id = int.Parse(dataui.Attributes["id"].Value);
+        SkillData _SkillData = ScriptableObject.CreateInstance<SkillData>();
+        _SkillData.Name = dataui.Attributes["name"].Value;
+        _SkillData.Id = int.Parse(dataui.Attributes["id"].Value);
 
+        //=========变量初始化
+        XmlNodeList childs = data.SelectNodes("variables/var");
+        foreach (XmlNode child in childs)
+        {
+            SharedVariable sharedVariable = ScriptableObject.CreateInstance(string.Format("Shared{0}",child.Attributes["type"].Value )) as SharedVariable;
+            sharedVariable.name = child.Attributes["name"].Value;
+            sharedVariable.IsShared = true;
+            _SkillData.Variables.Add(sharedVariable.name,sharedVariable);
+        }
+    
+        //==========模块初始化
         List<Task> list = new List<Task>();
-        XmlNodeList childs = dataui.SelectNodes("item");
+        childs = dataui.SelectNodes("item");
         foreach (XmlNode child in childs)
         {
             string k = child.Attributes["ID"].Value;
 
             XmlNode k1 = data.SelectSingleNode(@"*[@id=" + k + "]");
 
-            Task tk = DeserializeTask(child, k1);
+            Task tk = DeserializeTask(child, k1, _SkillData);
             list.Add(tk);
 
         }
-        SkillData.Datas = list;
-        return SkillData;
+        _SkillData.Datas = list;
+        return _SkillData;
     }
-    public static Task DeserializeTask(XmlNode dataui, XmlNode data)
+    public static Task DeserializeTask(XmlNode dataui, XmlNode data,SkillData _data)
     {
         string type_str = dataui.Attributes["ObjectType"].Value;
 
@@ -45,7 +56,7 @@ public class DeserializeXml : UnityEngine.Object
 
         task.NodeData = new DesignerNodeData();
         task.NodeData.deserialize_ui(dataui);
-        task.Deserialize(data);
+        task.Deserialize(data, _data);
 
 
 
@@ -64,7 +75,7 @@ public class DeserializeXml : UnityEngine.Object
             for (int j = 0; j < dataui.ChildNodes[i].ChildNodes.Count; j++)
             {
                 XmlNode k = data.ParentNode.SelectSingleNode(@"*[@id=" + dataui.ChildNodes[i].ChildNodes[j].Attributes["ID"].Value + "]");
-                item.Childs.Add(DeserializeTask(dataui.ChildNodes[i].ChildNodes[j], k));
+                item.Childs.Add(DeserializeTask(dataui.ChildNodes[i].ChildNodes[j], k, _data));
             }
         }
 

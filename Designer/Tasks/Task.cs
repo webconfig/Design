@@ -16,7 +16,7 @@ public abstract class Task : ScriptableObject
     
 
     #region 编辑器相关
-    public bool IsInit = false;
+    private bool IsInit = false;
 
     /// <summary>
     /// 节点的任务名称
@@ -62,7 +62,7 @@ public abstract class Task : ScriptableObject
         return;
     }
 
-    public virtual void Deserialize(XmlNode node)
+    public virtual void Deserialize(XmlNode node,SkillData data)
     {
 
     }
@@ -70,6 +70,12 @@ public abstract class Task : ScriptableObject
     {
         return;
     }
+
+    public virtual void InitValue()
+    {
+
+    }
+
     #endregion
 
 
@@ -265,6 +271,7 @@ public abstract class Task : ScriptableObject
             datas[i].Height = height;
             OutLinks.Add(datas[i].name, datas[i]);
         }
+        InitValue(); 
     }
     private void SetName()
     {
@@ -292,6 +299,9 @@ public abstract class Task : ScriptableObject
         if (!IsInit)
         {
             IsInit = true;
+
+            InitValue();
+
             float avg_widht = Width / (OutLinks.Count + 1);
             float width = ConnectionWidth;
             float height = BottomConnectionHeight + Task.TaskBackgroundShadowSize;
@@ -318,6 +328,9 @@ public abstract class Task : ScriptableObject
             }
         }
     }
+
+
+
 
     #endregion
 }

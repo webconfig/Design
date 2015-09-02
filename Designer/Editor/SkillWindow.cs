@@ -26,6 +26,10 @@ public class SkillWindow : EditorWindow
     /// 任务属性
     /// </summary>
     private TaskInspector mTaskInspector = ScriptableObject.CreateInstance<TaskInspector>();
+    /// <summary>
+    /// 变量
+    /// </summary>
+    private VariableInspector mVariableInspector = ScriptableObject.CreateInstance<VariableInspector>();
     public static readonly float PropertyBoxWidth = 320;
     public static readonly float ToolBarHeight = 18;
     public static readonly int EditorWindowTabHeight = 21;
@@ -77,14 +81,13 @@ public class SkillWindow : EditorWindow
             GenericMenu menu = new GenericMenu();
             for (int j = 0; j < Datas.Count; j++)
             {
-                menu.AddItem(new GUIContent(Datas[j].Name), false, (obj) => { SaveCurrent(); LoadDataSource(obj as SkillData); }, Datas[j]);
+                menu.AddItem(new GUIContent(Datas[j].Name), false, (obj) => {  LoadDataSource(obj as SkillData); }, Datas[j]);
             }
             menu.ShowAsContext();
         }
 
         if (GUILayout.Button("New", EditorStyles.toolbarButton, new GUILayoutOption[] { GUILayout.Width(42f) }))
         {//加载按钮
-            SaveCurrent();
             NewBehavior();
         }
 
@@ -122,7 +125,7 @@ public class SkillWindow : EditorWindow
     #endregion
 
     #region Left
-    private string[] LeftToolbarStrings = new string[]{"Skill","Tasks","Variables","Inspector"};
+    private string[] LeftToolbarStrings = new string[] { "Skill", "Tasks", "Inspector", "Variables" };
     private int LeftSelect = 1;
     private void DrawLeft()
     {
@@ -159,28 +162,6 @@ public class SkillWindow : EditorWindow
             }
         }
         else if (LeftSelect == 2)
-        {//显示变量
-            //if (this.CurrentData != null)
-            //{
-            //    if (this.mVariableInspector.drawVariables(this.CurrentData) && !Application.isPlaying)
-            //    {
-            //        //this.saveBehavior();
-            //    }
-            //    if (num != 2)
-            //    {
-            //        this.mVariableInspector.focusNameField();
-            //    }
-            //}
-            //else
-            //{
-            //    GUILayout.Space(5f);
-            //    GUILayout.Label("No behavior tree selected. Create a new behavior tree or select one from the hierarchy.", LabelWrapGUIStyle, new GUILayoutOption[]
-            //        {
-            //            GUILayout.Width(305f)
-            //        });
-            //}
-        }
-        else if (LeftSelect == 3)
         {//显示选择的行为书节点的属性
             if (this.mGraphDesigner.SelectedNodes.Count == 1)
             {
@@ -193,7 +174,7 @@ public class SkillWindow : EditorWindow
                 //        task = this.mNodeDesignerTaskMap[nodeDesigner];
                 //    }
                 //}
-                if (this.mTaskInspector.drawTaskFields(task) && !Application.isPlaying)
+                if (this.mTaskInspector.drawTaskFields(CurrentData,task) && !Application.isPlaying)
                 {
                     //this.saveBehavior();
                 }
@@ -215,6 +196,28 @@ public class SkillWindow : EditorWindow
                             GUILayout.Width(305f)
                         });
                 }
+            }
+        }
+        else if (LeftSelect == 3)
+        {//显示变量
+            if (this.CurrentData != null)
+            {
+                if (this.mVariableInspector.drawVariables(this.CurrentData) && !Application.isPlaying)
+                {
+                    //this.saveBehavior();
+                }
+                if (num != 2)
+                {
+                    this.mVariableInspector.focusNameField();
+                }
+            }
+            else
+            {
+                GUILayout.Space(5f);
+                GUILayout.Label("No behavior tree selected. Create a new behavior tree or select one from the hierarchy.",  new GUILayoutOption[]
+                    {
+                        GUILayout.Width(305f)
+                    });
             }
         }
         GUILayout.EndArea();
@@ -586,6 +589,8 @@ public class SkillWindow : EditorWindow
     /// <param name="useMousePosition"></param>
     public void addTask(Type type, bool useMousePosition)
     {
+        if (CurrentData == null) { return; }
+
         //得到任务显示的坐标
         Vector2 vector = new Vector2(MidRect.width / (2f * this.mGraphZoom), 150f);
         if (useMousePosition)
@@ -601,7 +606,10 @@ public class SkillWindow : EditorWindow
     /// </summary>
     private void deleteNodes()
     {
-        this.mGraphDesigner.delete(CurrentData);
+       if(this.mGraphDesigner.delete())
+       {
+           base.Repaint();
+       }
     }
     #endregion
 
@@ -634,13 +642,13 @@ public class SkillWindow : EditorWindow
         //this.mGraphOffset = new Vector2(-vector2.x +this.MidRect.width / (2f * this.mGraphZoom) - 50f, -vector2.y + 50f);
 
     }
-    private void SaveCurrent()
-    {
-        if (CurrentData != null)
-        {
-            this.mGraphDesigner.save(this.CurrentData);//把设计器内的数据保存到数据源里面去
-        }
-    }
+    //private void SaveCurrent()
+    //{
+    //    if (CurrentData != null)
+    //    {
+    //        this.mGraphDesigner.save(this.CurrentData);//把设计器内的数据保存到数据源里面去
+    //    }
+    //}
 
     #region 序列化
     public static string XmlPath = "";
@@ -653,7 +661,7 @@ public class SkillWindow : EditorWindow
         {
             return;
         }
-        this.mGraphDesigner.save(this.CurrentData);//把设计器内的数据保存到数据源里面去
+        //this.mGraphDesigner.save(this.CurrentData);//把设计器内的数据保存到数据源里面去
         //序列化数据源
         string DatasStr = "", data = "", UIs = "", data_ui = "";
 
@@ -774,7 +782,6 @@ public class SkillWindow : EditorWindow
     }
     public void ClearGraph()
     {
-        this.mGraphDesigner.clear();
         this.CurrentData= null;
         base.Repaint();
     }
@@ -798,7 +805,7 @@ public class SkillWindow : EditorWindow
         {
             PositionAdd(CopyTasks[j], new Vector2(30, 30));
             CopyTasks[j].Init();
-            mGraphDesigner.DetachedNodes.Add(CopyTasks[j]);
+            mGraphDesigner.data.Datas.Add(CopyTasks[j]);
         }
         CopyTasks.Clear();
         mGraphDesigner.clearNodeSelection();

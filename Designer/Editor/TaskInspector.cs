@@ -50,280 +50,181 @@ using UnityEngine;
 			return GUIUtility.keyboardControl != 0;
 		}
 
-		public bool drawTaskFields(Task task)
-		{
-			if (task == null )
-			{
-				return false;
-			}
-			this.mScrollPosition = GUILayout.BeginScrollView(this.mScrollPosition, new GUILayoutOption[0]);
-			if (this.skill_window == null)
-			{
-				this.skill_window = SkillWindow.Instance;
-			}
-			bool result = false;
-			EditorGUIUtility.labelWidth=TaskPropertiesLabelWidth;
-			EditorGUI.BeginChangeCheck();
-			GUILayout.BeginHorizontal(new GUILayoutOption[0]);
-			EditorGUILayout.LabelField("Name", new GUILayoutOption[]
+        public bool drawTaskFields(SkillData _data, Task task)
+        {
+            if (task == null)
+            {
+                return false;
+            }
+            this.mScrollPosition = GUILayout.BeginScrollView(this.mScrollPosition, new GUILayoutOption[0]);
+
+            bool result = false;
+            EditorGUIUtility.labelWidth = TaskPropertiesLabelWidth;
+            EditorGUI.BeginChangeCheck();
+            GUILayout.BeginHorizontal(new GUILayoutOption[0]);
+            EditorGUILayout.LabelField("Name", new GUILayoutOption[]
 			{
 				GUILayout.Width(90f)
 			});
-			task.NodeData.FriendlyName = EditorGUILayout.TextField(task.NodeData.FriendlyName, new GUILayoutOption[0]);
+            task.NodeData.FriendlyName = EditorGUILayout.TextField(task.NodeData.FriendlyName, new GUILayoutOption[0]);
 
-			if (GUILayout.Button("Edit", new GUILayoutOption[0]))
-			{
-				GenericMenu genericMenu = new GenericMenu();
-				genericMenu.AddItem(new GUIContent("Edit Script"), false, new GenericMenu.MenuFunction2(this.openInFileEditor), task);
-				genericMenu.AddItem(new GUIContent("Reset"), false, new GenericMenu.MenuFunction2(this.resetTask), task);
-				genericMenu.ShowAsContext();
-			}
-			GUILayout.EndHorizontal();
+            if (GUILayout.Button("编辑", new GUILayoutOption[0]))
+            {
+                GenericMenu genericMenu = new GenericMenu();
+                genericMenu.AddItem(new GUIContent("Edit Script"), false, new GenericMenu.MenuFunction2(this.openInFileEditor), task);
+                genericMenu.AddItem(new GUIContent("Reset"), false, new GenericMenu.MenuFunction2(this.resetTask), task);
+                genericMenu.ShowAsContext();
+            }
+            GUILayout.EndHorizontal();
 
-			EditorGUILayout.LabelField("Comment", new GUILayoutOption[0]);
-			task.NodeData.Comment = EditorGUILayout.TextArea(task.NodeData.Comment, new GUILayoutOption[]{GUILayout.Height(48f)});
-			if (EditorGUI.EndChangeCheck())
-			{
-				result = true;
-			}
+            EditorGUILayout.LabelField("Comment", new GUILayoutOption[0]);
+            task.NodeData.Comment = EditorGUILayout.TextArea(task.NodeData.Comment,  new GUILayoutOption[]{GUILayout.Height(48f)});
+            if (EditorGUI.EndChangeCheck())
+            {
+                result = true;
+            }
             //BehaviorDesignerUtility.DrawContentSeperator(2);
-			GUILayout.Space(6f);
-			HideFlags hideFlags = task.hideFlags;
-			task.hideFlags=0;
-			SerializedObject serializedObject = new SerializedObject(task);
-			serializedObject.Update();
-			FieldInfo[] fields = task.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			for (int i = 0; i < fields.Length; i++)
-			{
-				if (fields[i].GetCustomAttributes(typeof(NonSerializedAttribute), false).Length <= 0 && ((!fields[i].IsPrivate && !fields[i].IsFamily) || fields[i].GetCustomAttributes(typeof(SerializeField), false).Length != 0) && (!fields[i].Name.Equals("children")))
-				{
-					SerializedProperty serializedProperty = serializedObject.FindProperty(fields[i].Name);
-					if (serializedProperty != null)
-					{
-						SkillEditor.Runtime.Tasks.TooltipAttribute[] array;
-						GUIContent gUIContent;
+            GUILayout.Space(6f);
+            HideFlags hideFlags = task.hideFlags;
+            task.hideFlags = 0;
+            SerializedObject serializedObject = new SerializedObject(task);
+            serializedObject.Update();
+            FieldInfo[] fields = task.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                if (fields[i].GetCustomAttributes(typeof(NonSerializedAttribute), false).Length <= 0 && ((!fields[i].IsPrivate && !fields[i].IsFamily) || fields[i].GetCustomAttributes(typeof(SerializeField), false).Length != 0))
+                {
+                    SerializedProperty serializedProperty = serializedObject.FindProperty(fields[i].Name);
+                    if (serializedProperty != null)
+                    {
+                        SkillEditor.Runtime.Tasks.TooltipAttribute[] array;
+                        GUIContent gUIContent;
                         if ((array = (fields[i].GetCustomAttributes(typeof(SkillEditor.Runtime.Tasks.TooltipAttribute), false) as SkillEditor.Runtime.Tasks.TooltipAttribute[])).Length > 0)
-						{
-							gUIContent = new GUIContent(fields[i].Name, array[0].Tooltip);
-						}
-						else
-						{
-							gUIContent = new GUIContent(fields[i].Name);
-						}
-						EditorGUILayout.BeginHorizontal(new GUILayoutOption[0]);
-                        //bool flag = (fields[i].FieldType.IsArray && (fields[i].FieldType.GetElementType().Equals(typeof(Task)) || fields[i].FieldType.GetElementType().IsSubclassOf(typeof(Task)))) || fields[i].FieldType.Equals(typeof(Task)) || fields[i].FieldType.IsSubclassOf(typeof(Task));
-                        //if (!flag && !fields[i].FieldType.IsArray)
-                        //{
-                        //    GUILayout.Space(3f);
-                        //    bool flag2 = task.NodeData.containsWatchedField(fields[i]);
-                        //    if (GUILayout.Button(flag2 ? BehaviorDesignerUtility.VariableWatchButtonSelectedTexture : BehaviorDesignerUtility.VariableWatchButtonTexture, BehaviorDesignerUtility.PlainButtonGUIStyle, new GUILayoutOption[]
-                        //    {
-                        //        GUILayout.Width(15f)
-                        //    }))
-                        //    {
-                        //        if (flag2)
-                        //        {
-                        //            task.NodeData.removeWatchedField(fields[i]);
-                        //        }
-                        //        else
-                        //        {
-                        //            task.NodeData.addWatchedField(fields[i]);
-                        //        }
-                        //        result = true;
-                        //    }
-                        //}
-#region kk
-                        //if (flag)
-                        //{
-                        //    GUILayout.Label(gUIContent, BehaviorDesignerUtility.TaskInspectorGUIStyle, new GUILayoutOption[]
-                        //    {
-                        //        GUILayout.Width(203f)
-                        //    });
-                        //    bool flag3 = this.skill_window.isReferencingField(fields[i]);
-                        //    Color backgroundColor = GUI.backgroundColor;
-                        //    if (flag3)
-                        //    {
-                        //        GUI.backgroundColor=new Color(0.5f, 1f, 0.5f);
-                        //    }
-                        //    if (GUILayout.Button(flag3 ? "Done" : "Select", EditorStyles.miniButtonMid, new GUILayoutOption[]
-                        //    {
-                        //        GUILayout.Width(100f)
-                        //    }))
-                        //    {
-                        //        if (this.skill_window.isReferencingTasks() && !flag3)
-                        //        {
-                        //            this.skill_window.toggleReferenceTasks();
-                        //        }
-                        //        this.skill_window.toggleReferenceTasks(task, fields[i]);
-                        //    }
-                        //    GUI.backgroundColor=backgroundColor;
-                        //    EditorGUILayout.EndHorizontal();
-                        //    if (fields[i].FieldType.IsArray)
-                        //    {
-                        //        Task[] array2 = fields[i].GetValue(task) as Task[];
-                        //        if (array2 == null || array2.Length == 0)
-                        //        {
-                        //            GUILayout.Label("No Tasks Referenced", new GUILayoutOption[0]);
-                        //        }
-                        //        else
-                        //        {
-                        //            for (int j = 0; j < array2.Length; j++)
-                        //            {
-                        //                EditorGUILayout.BeginHorizontal(new GUILayoutOption[0]);
-                        //                GUILayout.Label(array2[j].NodeData.NodeDesigner.ToString(),  new GUILayoutOption[]
-                        //                {
-                        //                    GUILayout.Width(272f)
-                        //                });
-                        //                if (GUILayout.Button(BehaviorDesignerUtility.DeleteButtonTexture,  new GUILayoutOption[]
-                        //                {
-                        //                    GUILayout.Width(14f)
-                        //                }))
-                        //                {
-                        //                    this.referenceTasks(task, (array2[j].NodeData.NodeDesigner as NodeDesigner).Task, fields[i]);
-                        //                    result = true;
-                        //                }
-                        //                GUILayout.Space(3f);
-                        //                if (GUILayout.Button(BehaviorDesignerUtility.IdentifyButtonTexture, new GUILayoutOption[]
-                        //                {
-                        //                    GUILayout.Width(14f)
-                        //                }))
-                        //                {
-                        //                    this.skill_window.identifyNode(array2[j].NodeData.NodeDesigner as NodeDesigner);
-                        //                }
-                        //                EditorGUILayout.EndHorizontal();
-                        //            }
-                        //        }
-                        //    }
-                        //    else
-                        //    {
-                        //        EditorGUILayout.BeginHorizontal(new GUILayoutOption[0]);
-                        //        Task task2 = fields[i].GetValue(task) as Task;
-                        //        GUILayout.Label((task2 != null) ? task2.NodeData.NodeDesigner.ToString() : "No Tasks Referenced", new GUILayoutOption[]
-                        //        {
-                        //            GUILayout.Width(272f)
-                        //        });
-                        //        if (task2 != null)
-                        //        {
-                        //            if (GUILayout.Button(BehaviorDesignerUtility.DeleteButtonTexture, BehaviorDesignerUtility.PlainButtonGUIStyle, new GUILayoutOption[]
-                        //            {
-                        //                GUILayout.Width(14f)
-                        //            }))
-                        //            {
-                        //                this.referenceTasks(task, (task2.NodeData.NodeDesigner as NodeDesigner).Task, fields[i]);
-                        //                result = true;
-                        //            }
-                        //            GUILayout.Space(3f);
-                        //            if (GUILayout.Button(BehaviorDesignerUtility.IdentifyButtonTexture, BehaviorDesignerUtility.PlainButtonGUIStyle, new GUILayoutOption[]
-                        //            {
-                        //                GUILayout.Width(14f)
-                        //            }))
-                        //            {
-                        //                this.skill_window.identifyNode(task2.NodeData.NodeDesigner as NodeDesigner);
-                        //            }
-                        //        }
-                        //        EditorGUILayout.EndHorizontal();
-                        //    }
-                        //}
-#endregion
-#region cc
-                        //else if (fields[i].FieldType.IsSubclassOf(typeof(SharedVariable)))
-                        //{
-                        //    EditorGUI.BeginChangeCheck();
-                        //    SharedVariable sharedVariable = fields[i].GetValue(task) as SharedVariable;
-                        //    GUILayout.BeginVertical(new GUILayoutOption[0]);
-                        //    GUILayout.Space(2f);
-                        //    GUILayout.Label(gUIContent, new GUILayoutOption[]
-                        //    {
-                        //        GUILayout.Width(146f)
-                        //    });
-                        //    GUILayout.EndVertical();
-                        //    bool flag4 = false;
-                        //    switch (sharedVariable.ValueType)
-                        //    {
-                        //    case SharedVariableTypes.Vector2:
-                        //    case SharedVariableTypes.Vector3:
-                        //    case SharedVariableTypes.Vector4:
-                        //    case SharedVariableTypes.Quaternion:
-                        //    case SharedVariableTypes.Rect:
-                        //        flag4 = true;
-                        //        break;
-                        //    }
-                        //    if (sharedVariable.IsShared)
-                        //    {
-                        //        string[] array3 = null;
-                        //        int num = this.getVariablesOfType(sharedVariable, behaviorSource, out array3);
-                        //        Color backgroundColor2 = GUI.backgroundColor;
-                        //        if (num == 0)
-                        //        {
-                        //            GUI.backgroundColor=Color.red;
-                        //        }
-                        //        int num2 = num;
-                        //        num = EditorGUILayout.Popup(num, array3, EditorStyles.toolbarPopup, new GUILayoutOption[0]);
-                        //        GUI.backgroundColor=backgroundColor2;
-                        //        if (num != num2)
-                        //        {
-                        //            if (num == 0)
-                        //            {
-                        //                SharedVariable sharedVariable2 = ScriptableObject.CreateInstance(fields[i].FieldType) as SharedVariable;
-                        //                sharedVariable2.IsShared = true;
-                        //                fields[i].SetValue(task, sharedVariable2);
-                        //            }
-                        //            else
-                        //            {
-                        //                fields[i].SetValue(task, behaviorSource.GetVariable(array3[num]));
-                        //            }
-                        //        }
-                        //        GUILayout.Space(8f);
-                        //    }
-                        //    if (!sharedVariable.IsShared && !flag4)
-                        //    {
-                        //        VariableInspector.DrawSharedVariableValue(sharedVariable, 121);
-                        //        fields[i].SetValue(task, sharedVariable);
-                        //    }
-                        //    if (GUILayout.Button(sharedVariable.IsShared ? BehaviorDesignerUtility.VariableButtonSelectedTexture : BehaviorDesignerUtility.VariableButtonTexture, BehaviorDesignerUtility.PlainButtonGUIStyle, new GUILayoutOption[]
-                        //    {
-                        //        GUILayout.Width(15f)
-                        //    }))
-                        //    {
-                        //        bool isShared = !sharedVariable.IsShared;
-                        //        sharedVariable = (ScriptableObject.CreateInstance(fields[i].FieldType) as SharedVariable);
-                        //        sharedVariable.IsShared = isShared;
-                        //        fields[i].SetValue(task, sharedVariable);
-                        //    }
-                        //    GUILayout.Space(4f);
-                        //    GUILayout.EndHorizontal();
-                        //    if (!sharedVariable.IsShared && flag4)
-                        //    {
-                        //        VariableInspector.DrawSharedVariableValue(sharedVariable, 100);
-                        //        fields[i].SetValue(task, sharedVariable);
-                        //    }
-                        //    if (EditorGUI.EndChangeCheck())
-                        //    {
-                        //        BehaviorUndo.RegisterUndo("Inspector", task, true, true);
-                        //        result = true;
-                        //    }
-                        //    GUILayout.Space(4f);
-                        //}
-#endregion
-                        //else
-                        //{
-							EditorGUI.BeginChangeCheck();
-							EditorGUILayout.PropertyField(serializedProperty, gUIContent, true, new GUILayoutOption[0]);
-							if (EditorGUI.EndChangeCheck())
+                        {
+                            gUIContent = new GUIContent(fields[i].Name, array[0].Tooltip);
+                        }
+                        else
+                        {
+                            gUIContent = new GUIContent(fields[i].Name);
+                        }
+                        EditorGUILayout.BeginHorizontal(new GUILayoutOption[0]);
+                        if (fields[i].FieldType.IsSubclassOf(typeof(SharedVariable)))
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            SharedVariable sharedVariable = fields[i].GetValue(task) as SharedVariable;
+                            GUILayout.BeginVertical(new GUILayoutOption[0]);
+                            GUILayout.Space(2f);
+                            GUILayout.Label(gUIContent, new GUILayoutOption[]
 							{
-								serializedObject.ApplyModifiedProperties();
-								result = true;
-							}
-							EditorGUILayout.EndHorizontal();
-                        //}
-					}
-				}
-			}
-			task.hideFlags=hideFlags;
-			GUILayout.EndScrollView();
-			return result;
-		}
+								GUILayout.Width(146f)
+							});
+                            GUILayout.EndVertical();
+                            bool flag4 = false;
+                            switch (sharedVariable.ValueType)
+                            {
+                                case SharedVariableTypes.Vector2:
+                                case SharedVariableTypes.Vector3:
+                                case SharedVariableTypes.Vector4:
+                                case SharedVariableTypes.Quaternion:
+                                case SharedVariableTypes.Rect:
+                                    flag4 = true;
+                                    break;
+                            }
+                            if (sharedVariable.IsShared)
+                            {
+                                string[] array3 = null;
+                                int num = this.getVariablesOfType(sharedVariable, _data, out array3);
+                                Color backgroundColor2 = GUI.backgroundColor;
+                                if (num == 0)
+                                {
+                                    GUI.backgroundColor = Color.red;
+                                }
+                                int num2 = num;
+                                num = EditorGUILayout.Popup(num, array3, EditorStyles.toolbarPopup, new GUILayoutOption[0]);
+                                GUI.backgroundColor = backgroundColor2;
+                                if (num != num2)
+                                {//===========设置分享变量==============
+                                    if (num == 0)
+                                    {
+                                        SharedVariable sharedVariable2 = ScriptableObject.CreateInstance(fields[i].FieldType) as SharedVariable;
+                                        sharedVariable2.IsShared = true;
+                                        fields[i].SetValue(task, sharedVariable2);
+                                    }
+                                    else
+                                    {
+                                        fields[i].SetValue(task, _data.GetVariable(array3[num]));
+                                    }
+                                }
+                                GUILayout.Space(8f);
+                            }
+                            if (!sharedVariable.IsShared && !flag4)
+                            {
+                                VariableInspector.DrawSharedVariableValue(sharedVariable, 121);
+                                fields[i].SetValue(task, sharedVariable);
+                            }
+                            if (GUILayout.Button(sharedVariable.IsShared ? "-" : "@"))
+                            {
+                                bool isShared = !sharedVariable.IsShared;
+                                sharedVariable = (ScriptableObject.CreateInstance(fields[i].FieldType) as SharedVariable);
+                                sharedVariable.IsShared = isShared;//设置是否为分享变量
+                                fields[i].SetValue(task, sharedVariable);
+                            }
+                            GUILayout.Space(4f);
+                            GUILayout.EndHorizontal();
+                            if (!sharedVariable.IsShared && flag4)
+                            {
+                                VariableInspector.DrawSharedVariableValue(sharedVariable, 100);
+                                fields[i].SetValue(task, sharedVariable);
+                            }
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                result = true;
+                            }
+                            GUILayout.Space(4f);
+                        }
+                        else
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            EditorGUILayout.PropertyField(serializedProperty, gUIContent, true, new GUILayoutOption[0]);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                serializedObject.ApplyModifiedProperties();
+                                result = true;
+                            }
+                            EditorGUILayout.EndHorizontal();
+                        }
+                    }
+                }
+            }
+            task.hideFlags = hideFlags;
+            GUILayout.EndScrollView();
+            return result;
+        }
+        private int getVariablesOfType(SharedVariable thisVariable, SkillData _data, out string[] names)
+        {
 
+            int result = 0;
+            int num = 1;
+            List<string> list = new List<string>();
+            list.Add("None");
+            if (_data.Variables != null)
+            {
+                foreach (var item in _data.Variables.Values)
+                {
+                    if (item.GetType().Equals(thisVariable.GetType()))
+                    {
+                        list.Add(item.name);
+                        if (item.name.Equals(thisVariable.name))
+                        {
+                            result = num;
+                        }
+                        num++;
+                    }
+                }
+            }
+            names = list.ToArray();
+            return result;
+        }
 		public void setActiveReferencedTasks(Task referenceTask, FieldInfo fieldInfo)
 		{
 			this.activeReferenceTask = referenceTask;
@@ -549,9 +450,9 @@ using UnityEngine;
 		}
 
 
-        //private int getVariablesOfType(SharedVariable thisVariable, SkillData behaviorSource, out string[] names)
+        //private int getVariablesOfType(SharedVariable thisVariable, SkillData _data, out string[] names)
         //{
-        //    List<SharedVariable> variables = behaviorSource.Variables;
+        //    List<SharedVariable> variables = _data.Variables;
         //    int result = 0;
         //    int num = 1;
         //    List<string> list = new List<string>();

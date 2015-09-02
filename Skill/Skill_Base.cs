@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-
 using System.Xml;
 using System.IO;
 using System.Runtime.Serialization;
@@ -72,10 +71,7 @@ public class Skill_Base : Task
     /// </summary>
     public virtual void Run(object Data)
     {
-        Prev_Data = Data;
-        ready_end = false;
-        //skill.running_count_max++;
-        //skill.Runing_Add.Add(this);
+
     }
 
     /// <summary>
@@ -99,14 +95,7 @@ public class Skill_Base : Task
     /// <param name="id"></param>
     public Skill_Base RunModule(int id, object Data)
     {
-        //if (id > 0)
-        //{
-        //    if (!skill.Items.ContainsKey(id)) { Debug.Log("===========技能不包含模块ID："+id); }
-        //    Skill_Base sb = Skill_Manager.Instance.SkillClass.GetObj(id, skill);//(skill.Items[id]  as IDeepCopy).DeepCopy();
-        //    sb.skill = skill;
-        //    sb.Run(Data);
-        //    return sb;
-        //}
+       
         return null;
     }
     /// <summary>
@@ -116,20 +105,10 @@ public class Skill_Base : Task
     public void RunNext(object Data)
     {
 
-        //if ((!SkillOver) && (NextIds != null) && (NextIds.Count > 0))
-        //{
-        //    foreach (int num in NextIds)
-        //    {
-        //        //Debug.Log(num);
-        //        Skill_Base sb = Skill_Manager.Instance.SkillClass.GetObj(num, skill);// (skill.Items[num] as IDeepCopy).DeepCopy(); 
-        //        sb.skill = skill;
-        //        sb.Run(Data);
-        //    }
-        //}
 
     }
     
-    public void Copy(Skill_Base data)
+    public  void Copy(Skill_Base data)
     {
         data.class_type = this.class_type;
         data.skill=this.skill;
@@ -149,7 +128,7 @@ public class Skill_Base : Task
         dictionary.Add("id", ID.ToString());
 
         dictionary.Add("nextids", GetOutLinkIds("n"));
-        if (Kind>0)
+        if (Kind > 0)
         {
             dictionary.Add("kind", Kind.ToString());
         }
@@ -160,7 +139,7 @@ public class Skill_Base : Task
     {
         dictionary.Add("ID", ID.ToString());
     }
-    public override void Deserialize(XmlNode node)
+    public override void Deserialize(XmlNode node,SkillData _data)
     {
         Init(null, node);
     }

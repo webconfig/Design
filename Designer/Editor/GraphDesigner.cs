@@ -13,31 +13,27 @@ public class GraphDesigner : ScriptableObject
     /// </summary>
     public List<Task> SelectedNodes = new List<Task>();
     /// <summary>
-    /// 所有的节点
+    /// 当前数据
     /// </summary>
-    public List<Task> DetachedNodes = new List<Task>();
+    public SkillData data;
     /// <summary>
     /// 正在连接的线
     /// </summary>
     public NodeConnection ActiveNodeConnection;
+
+    public int index = 1;
 
     #region 数据操作
     /// <summary>
     /// 加载一个数据源
     /// </summary>
     /// <param name="data"></param>
-    public void Load(SkillData data)
+    public void Load(SkillData _data)
     {
-        clear();
-        DetachedNodes.Clear();
-        List<Task> list = data.Datas;
-        if (list != null)
+        data = _data;
+        for(int i=0;i<data.Datas.Count;i++)
         {
-            for (int j = 0; j < list.Count; j++)
-            {
-                list[j].Init();
-                DetachedNodes.Add(list[j]);
-            }
+            data.Datas[i].Init();
         }
     }
     /// <summary>
@@ -49,6 +45,11 @@ public class GraphDesigner : ScriptableObject
     /// <returns></returns>
     public Task addNode(Type type, Vector2 position)
     {
+        if(data==null)
+        {
+            return null;
+        }
+
         Task task;
         task = (ScriptableObject.CreateInstance(type) as Task);
         if (task == null)
@@ -56,26 +57,11 @@ public class GraphDesigner : ScriptableObject
             Debug.LogError(string.Format("Unable to create task of type {0}. Is the class name the same as the file name?", type));
             return null;
         }
+        data.index++;
+        task.ID = data.index;
         task.loadNode(position);
-        DetachedNodes.Add(task);
+        data.Datas.Add(task);
         return task;
-    }
-    /// <summary>
-    /// 保存
-    /// </summary>
-    /// <param name="behaviorSource"></param>
-    public void save(SkillData _data)
-    {
-        if (DetachedNodes == null || DetachedNodes.Count <= 0)
-        {
-            return;
-        }
-        List<Task> list = new List<Task>();
-        for (int i = 0; i < DetachedNodes.Count; i++)
-        {
-            list.Add(DetachedNodes[i]);
-        }
-        _data.save(list);
     }
     #endregion
 
@@ -83,7 +69,7 @@ public class GraphDesigner : ScriptableObject
     public bool drawNodes(Vector2 mousePosition, Vector2 offset, float graphZoom)
     {
         bool result = false;
-        if (DetachedNodes == null || DetachedNodes.Count <= 0) { return false; }
+        if (data==null||data.Datas == null || data.Datas.Count <= 0) { return false; }
 
         //绘制正在连接的线（鼠标拖动的连线）
         if (mousePosition != new Vector2(-1f, -1f) && ActiveNodeConnection != null)
@@ -97,10 +83,10 @@ public class GraphDesigner : ScriptableObject
 
 
         //绘制节点
-        for (int i = 0; i < DetachedNodes.Count; i++)
+        for (int i = 0; i < data.Datas.Count; i++)
         {
             //绘制自己和自己的子节点
-            if(this.drawNodeChildren(DetachedNodes[i], offset, graphZoom, DetachedNodes[i].NodeData.Disabled))
+            if(this.drawNodeChildren(data.Datas[i], offset, graphZoom, data.Datas[i].NodeData.Disabled))
             {
                 result = true;
             }
@@ -137,14 +123,14 @@ public class GraphDesigner : ScriptableObject
     /// <returns></returns>
     public Task nodeAt(Vector2 point, Vector2 offset)
     {
-        if (DetachedNodes == null || DetachedNodes.Count <= 0)
+        if (data==null||data.Datas == null || data.Datas.Count <= 0)
         {
             return null;
         }
         Task result;
-        for (int j = DetachedNodes.Count - 1; j > -1; j--)
+        for (int j = data.Datas.Count - 1; j > -1; j--)
         {
-            if (DetachedNodes[j] != null && (result = nodeChildrenAt(DetachedNodes[j], point, offset)) != null)
+            if (data.Datas[j] != null && (result = nodeChildrenAt(data.Datas[j], point, offset)) != null)
             {
                 return result;
             }
@@ -307,7 +293,7 @@ public class GraphDesigner : ScriptableObject
             {
                 originating.AddConnection(node, nodeConnection, true);
             }
-            DetachedNodes.Remove(nodeConnection.DestinationNodeDesigner);
+            data.Datas.Remove(nodeConnection.DestinationNodeDesigner);
         }
     }
 
@@ -316,7 +302,7 @@ public class GraphDesigner : ScriptableObject
     /// </summary>
     /// <param name="behaviorSource"></param>
     /// <returns></returns>
-    public bool delete(SkillData _data)
+    public bool delete()
     {
         bool flag = false;
         //if (SelectedNodeConnections != null)
@@ -338,10 +324,6 @@ public class GraphDesigner : ScriptableObject
             SelectedNodes.Clear();
             flag = true;
         }
-        if (flag)
-        {
-            this.save(_data);
-        }
         return flag;
     }
     /// <summary>
@@ -359,20 +341,9 @@ public class GraphDesigner : ScriptableObject
         }
         else
         {
-            DetachedNodes.Remove(node);
+            data.Datas.Remove(node);
         }
     }
-    public void clear()
-    {
-
-        //this.mPrevNodeSelectedID = null;
-
-        //this.mNodeSelectedID.Clear();
-        //SelectedNodes.Clear();
-        //SelectedNodeConnections.Clear();
-        //DetachedNodes = new List<NodeDesigner>();
-    }
-
 
     #region 复制粘贴
     public List<Task> copy()
@@ -387,7 +358,7 @@ public class GraphDesigner : ScriptableObject
             xml_ui.LoadXml(str_ui);
             XmlDocument xml_data = new XmlDocument();
             xml_data.LoadXml(str_data);
-            Task item = DeserializeXml.DeserializeTask(xml_ui.FirstChild, xml_data.FirstChild.SelectSingleNode(@"*[@id=" + SelectedNodes[i].ID + "]"));
+            Task item = DeserializeXml.DeserializeTask(xml_ui.FirstChild, xml_data.FirstChild.SelectSingleNode(@"*[@id=" + SelectedNodes[i].ID + "]"), data);
             result.Add(item);
 
         }

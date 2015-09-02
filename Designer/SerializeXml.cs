@@ -22,6 +22,22 @@ public class SerializeXml : UnityEngine.Object
         System.Text.StringBuilder _str_ui = new System.Text.StringBuilder();
         _str_ui.AppendFormat("<skill id=\"{0}\" name=\"{1}\">\r\n", data.Id, data.Name);
         _str.AppendFormat("<skill id=\"{0}\" name=\"{1}\" cd=\"{2}\">\r\n", data.Id, data.Name, data.CD.ToString());
+
+        System.Text.StringBuilder _str_var = new StringBuilder();
+        _str_var.Append("<variables>\r\n");
+        foreach (var item in data.Variables)
+        {
+            _str_var.AppendFormat("<var type=\"{0}\" name=\"{1}\" />\r\n", item.Value.ValueType.ToString(), item.Key);
+        }
+
+        //for (int i = 0; i < data.Variables.Count; i++)
+        //{
+        //    _str_var.AppendFormat("<var type=\"{0}\" name=\"{1}\" />\r\n", data.Variables[i].ValueType.ToString(), data.Variables[i].name);
+        //}
+        _str_var.Append("</variables>\r\n");
+        _str.Append(_str_var.ToString());
+
+
         for (int i = 0; i < data.Datas.Count; i++)
         {
             _str.Append(Data_ToString(SerializeTask_Data(data.Datas[i])));//序列化内容
@@ -31,6 +47,8 @@ public class SerializeXml : UnityEngine.Object
         _str.Append("</skill>\r\n");
         str = _str.ToString();
         str_ui = _str_ui.ToString();
+
+
 
     }
 
